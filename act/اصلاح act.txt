@@ -1,5 +1,0 @@
-NEWPASS=$(grep '^DB_PASS=' /var/www/html/iptv/.env | cut -d= -f2-)
-cp -p /var/www/html/act/config.php /var/www/html/act/config.php.bak
-sed -i "s/define('DB_PASS', '123456')/define('DB_PASS', '${NEWPASS}')/" /var/www/html/act/config.php
-grep -n "DB_PASS" /var/www/html/act/config.php
-curl -s http://192.168.1.106/act/index.php | head -3

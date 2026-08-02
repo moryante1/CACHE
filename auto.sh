@@ -129,6 +129,47 @@ DB_USER="$(getenv DB_USER)"; DB_USER="${DB_USER:-iptv_user}"
 DB_NAME="$(getenv DB_NAME)"; DB_NAME="${DB_NAME:-iptv_db}"
 CUR_PASS="$(getenv DB_PASS)"
 
+# ══════════════════════════════════════════════════════════════
+#  🔴 درس من عطل حقيقي — يُقرأ قبل التعديل
+# ──────────────────────────────────────────────────────────────
+#  النسخة السابقة من هذا السكربت غيّرت كلمة مرور iptv_user
+#  وحدّثت ملف .env الخاص بمشروع iptv فقط — ثم توقّف مشروع act
+#  بخطأ "Database connection failed"، لأن كلمته مكتوبة داخل
+#  /var/www/html/act/config.php ولم يعرف السكربت بوجودها.
+#
+#  الخطأ الجذري: غيّرنا بيانات اعتماد مستخدم مشترك دون أن نسأل
+#  أولاً "من يستخدمه؟". الفحص يجب أن يسبق التغيير لا أن يتبعه.
+#
+#  الحل هنا: نمسح جذر الويب كله بحثاً عن أي ملف يحمل كلمة المرور
+#  الحالية أو اسم المستخدم، نعرضها عليك، ثم نحدّثها جميعاً بعد
+#  نجاح التغيير — ونتراجع عنها كلها إن فشل أي شيء.
+# ══════════════════════════════════════════════════════════════
+
+WEBROOT="$(dirname "$APP_DIR")"
+declare -a LINKED_FILES=()
+
+# هل سنغيّر الكلمة أصلاً؟ لا فائدة من مسح القرص إن كانت قوية.
+NEED_CHANGE=0
+[[ "$CUR_PASS" == "123456" || ${#CUR_PASS} -lt 12 ]] && NEED_CHANGE=1
+
+if [[ -n "$CUR_PASS" && $NEED_CHANGE -eq 1 ]]; then
+    while IFS= read -r ff; do
+        [[ -n "$ff" ]] && LINKED_FILES+=("$ff")
+    done < <(
+        grep -rlF "$CUR_PASS" "$WEBROOT" --include='*.php' 2>/dev/null \
+          | grep -v "^${APP_DIR}/" \
+          | grep -vE '/(node_modules|_backup_before_fix|Xp|xp|vendor)/' \
+          | sort -u
+    )
+fi
+
+if [[ ${#LINKED_FILES[@]} -gt 0 ]]; then
+    warn "مشاريع أخرى تستخدم نفس كلمة المرور — ستُحدَّث تلقائياً:"
+    for ff in "${LINKED_FILES[@]}"; do printf '        %s\n' "$ff"; done
+elif [[ $NEED_CHANGE -eq 1 ]]; then
+    skip "لا مشاريع أخرى تشارك هذه الكلمة"
+fi
+
 if [[ "$CUR_PASS" != "123456" && ${#CUR_PASS} -ge 12 ]]; then
     skip "الكلمة قوية بالفعل — لا تغيير"
 elif ! MYSQL_PWD="$CUR_PASS" mysql -u "$DB_USER" -e "SELECT 1" "$DB_NAME" >/dev/null 2>&1; then
@@ -156,16 +197,61 @@ else
 
         if MYSQL_PWD="$NEWP" mysql -u "$DB_USER" -e "SELECT 1" "$DB_NAME" >/dev/null 2>&1; then
             ok "غُيِّرت وتحقّقت"
+
+            # ── تحديث المشاريع الأخرى التي تشارك نفس الكلمة ──
+            UPD_OK=1
+            for ff in "${LINKED_FILES[@]}"; do
+                cp -p "$ff" "${ff}.bak.$(date +%s)" 2>/dev/null
+
+                # نستخدم python بدل sed: يتعامل مع أي رمز خاص في الكلمة
+                # (مثل & و / و \) التي تكسر sed بصمت وتُفسد الملف.
+                if python3 - "$ff" "$CUR_PASS" "$NEWP" <<'PYEOF'
+import io, sys
+path, old, new = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    s = io.open(path, encoding='utf-8', errors='surrogateescape').read()
+    if old not in s:
+        sys.exit(2)
+    io.open(path, 'w', encoding='utf-8', errors='surrogateescape').write(s.replace(old, new))
+except Exception:
+    sys.exit(1)
+PYEOF
+                then
+                    ok "حُدِّث $(basename "$(dirname "$ff")")/$(basename "$ff")"
+                else
+                    bad "تعذّر تحديث $ff"
+                    UPD_OK=0
+                fi
+            done
+
+            if [[ $UPD_OK -eq 0 ]]; then
+                warn "بعض المشاريع لم تُحدَّث — قد تتوقف حتى تصحّحها يدوياً"
+                FAILED=1
+            fi
+
             printf '\n  %s%s كلمة المرور الجديدة — احفظها الآن:%s\n' "$B" "$G" "$N"
             printf '  %s%s%s\n\n' "$G" "$NEWP" "$N"
+
         else
-            # تراجع كامل
+            # ── تراجع كامل: MySQL + .env + كل المشاريع المرتبطة ──
             for H in localhost 127.0.0.1 '%'; do
                 MYSQL_PWD="$NEWP" mysql -u "$DB_USER" \
                     -e "ALTER USER '${DB_USER}'@'${H}' IDENTIFIED BY '${CUR_PASS}';" >/dev/null 2>&1
             done
             setenv DB_PASS "$CUR_PASS"
-            bad "فشل التحقق — تم التراجع. الموقع يعمل كما كان."
+            for ff in "${LINKED_FILES[@]}"; do
+                python3 - "$ff" "$NEWP" "$CUR_PASS" <<'PYEOF' || true
+import io, sys
+path, old, new = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    s = io.open(path, encoding='utf-8', errors='surrogateescape').read()
+    if old in s:
+        io.open(path, 'w', encoding='utf-8', errors='surrogateescape').write(s.replace(old, new))
+except Exception:
+    pass
+PYEOF
+            done
+            bad "فشل التحقق — تم التراجع الكامل. كل شيء يعمل كما كان."
             FAILED=1
         fi
     fi

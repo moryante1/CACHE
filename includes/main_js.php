@@ -40,7 +40,7 @@ function toggleDayNight(){
   const next = document.documentElement.classList.contains('light-mode') ? 'dark' : 'light';
   try{ localStorage.setItem('shashety_mode', next); }catch(e){}
   applyDayNight(next);
-  if(window.toast) toast(next==='light' ? 'الوضع النهاري ☀️' : 'الوضع الليلي 🌙','i');
+  if(window.toast) toast(next==='light' ? '<?= addslashes($t["js_1969b544b8"] ?? "الوضع النهاري ☀️") ?>' : '<?= addslashes($t["js_7d7370f5a0"] ?? "الوضع الليلي 🌙") ?>','i');
 }
 // تطبيق الوضع المحفوظ فوراً عند تحميل الصفحة
 (function(){
@@ -207,10 +207,10 @@ function saveFrontendToggles(){
     if(d.success){
       // تحديث الحالة الأولية محلياً حتى يبقى "استرجاع المحفوظ" متسقاً
       Object.keys(_FC_INITIAL).forEach(k=>{ if(k in data) _FC_INITIAL[k]=data[k]; });
-      al('fcAlert','✅ '+(d.message||'تم الحفظ بنجاح')+' — حدّث صفحة الموقع لرؤية التغييرات','s');
-      if(window.toast) toast('تم حفظ إعدادات الواجهة','s');
+      al('fcAlert','✅ '+(d.message||'<?= addslashes($t["js_6f397b3345"] ?? "تم الحفظ بنجاح") ?>')+' — حدّث صفحة الموقع لرؤية التغييرات','s');
+      if(window.toast) toast('<?= addslashes($t["js_a556f58e8b"] ?? "تم حفظ إعدادات الواجهة") ?>','s');
     } else {
-      al('fcAlert','❌ '+(d.error||'تعذّر الحفظ'),'e');
+      al('fcAlert','❌ '+(d.error||'<?= addslashes($t["js_de03320144"] ?? "تعذّر الحفظ") ?>'),'e');
     }
   });
 }
@@ -226,7 +226,7 @@ function gsGeneralInputs(){
 function loadGeneralSettings(){
   al('gsAlert','<span class="sp"></span> جارٍ تحميل الإعدادات…','i');
   api({ ajax_action:'get_general_settings' }).then(d=>{
-    if(!d.success){ al('gsAlert','❌ '+(d.error||'تعذّر التحميل'),'e'); return; }
+    if(!d.success){ al('gsAlert','❌ '+(d.error||'<?= addslashes($t["js_7a60c078cf"] ?? "تعذّر التحميل") ?>'),'e'); return; }
     const s = d.settings || {};
     gsGeneralInputs().forEach(inp=>{
       const k = inp.getAttribute('data-key');
@@ -246,13 +246,13 @@ function loadGeneralSettings(){
 
 // استرجاع كل القيم الأصلية (يعيد التعيين للوضع الافتراضي)
 function restoreDefaultSettings(){
-  if(!confirm('هل أنت متأكد من استرجاع جميع قيم الإعدادات للوضع الافتراضي؟ هذا الإجراء سيحذف كل تعديلاتك على إعدادات الواجهة والمشغّل.')) return;
+  if(!confirm('<?= addslashes($t["js_77659204ab"] ?? "هل أنت متأكد من استرجاع جميع قيم الإعدادات للوضع الافتراضي؟ هذا الإجراء سيحذف كل تعديلاتك على إعدادات الواجهة والمشغّل.") ?>')) return;
   api({ajax_action:'restore_default_settings'}).then(d=>{
     if(d.success){
-      alert(d.message || 'تم الاسترجاع بنجاح');
+      alert(d.message || '<?= addslashes($t["js_607ea78d64"] ?? "تم الاسترجاع بنجاح") ?>');
       location.reload();
     } else {
-      alert(d.message || 'حدث خطأ أثناء الاسترجاع');
+      alert(d.message || '<?= addslashes($t["js_4bda5d3b05"] ?? "حدث خطأ أثناء الاسترجاع") ?>');
     }
   });
 }
@@ -267,10 +267,10 @@ function saveGeneralSettings(){
   al('gsAlert','<span class="sp"></span> جارٍ حفظ الإعدادات…','i');
   api(data).then(d=>{
     if(d.success){
-      al('gsAlert','✅ '+(d.message||'تم الحفظ')+' — حدّث صفحة الموقع لرؤية التغييرات','s');
-      if(window.toast) toast('تم حفظ الإعدادات العامة','s');
+      al('gsAlert','✅ '+(d.message||'<?= addslashes($t["js_7b9c60b636"] ?? "تم الحفظ") ?>')+' — حدّث صفحة الموقع لرؤية التغييرات','s');
+      if(window.toast) toast('<?= addslashes($t["js_387938330d"] ?? "تم حفظ الإعدادات العامة") ?>','s');
     } else {
-      al('gsAlert','❌ '+(d.error||'تعذّر الحفظ'),'e');
+      al('gsAlert','❌ '+(d.error||'<?= addslashes($t["js_de03320144"] ?? "تعذّر الحفظ") ?>'),'e');
     }
   });
 }
@@ -286,7 +286,7 @@ function loadGroupSettings(group){
   const alId = 'ga_' + group;
   al(alId,'<span class="sp"></span> جارٍ التحميل…','i');
   api({ ajax_action:'get_general_settings' }).then(d=>{
-    if(!d.success){ al(alId,'❌ '+(d.error||'تعذّر التحميل'),'e'); return; }
+    if(!d.success){ al(alId,'❌ '+(d.error||'<?= addslashes($t["js_7a60c078cf"] ?? "تعذّر التحميل") ?>'),'e'); return; }
     const s = d.settings || {};
     scope.querySelectorAll('[data-key]').forEach(inp=>{
       const k = inp.getAttribute('data-key');
@@ -330,10 +330,10 @@ function saveGroupSettings(group){
   al(alId,'<span class="sp"></span> جارٍ الحفظ…','i');
   api(data).then(d=>{
     if(d.success){
-      al(alId,'✅ '+(d.message||'تم الحفظ')+' — حدّث صفحة الموقع لرؤية التغييرات','s');
-      if(window.toast) toast('تم حفظ إعدادات المجموعة','s');
+      al(alId,'✅ '+(d.message||'<?= addslashes($t["js_7b9c60b636"] ?? "تم الحفظ") ?>')+' — حدّث صفحة الموقع لرؤية التغييرات','s');
+      if(window.toast) toast('<?= addslashes($t["js_4b6d79ecf9"] ?? "تم حفظ إعدادات المجموعة") ?>','s');
     } else {
-      al(alId,'❌ '+(d.error||'تعذّر الحفظ'),'e');
+      al(alId,'❌ '+(d.error||'<?= addslashes($t["js_de03320144"] ?? "تعذّر الحفظ") ?>'),'e');
     }
   });
 }
@@ -366,11 +366,11 @@ function toggleCategoryActive(checkbox){
   api({ ajax_action:'toggle_category_active', category_id:cid, is_active:newState }).then(d=>{
     checkbox.disabled = false;
     if(d.success){
-      if(window.toast) toast(d.message||'تم التحديث','s');
+      if(window.toast) toast(d.message||'<?= addslashes($t["js_71326f4a7e"] ?? "تم التحديث") ?>','s');
     } else {
       checkbox.checked = !checkbox.checked; // تراجع عند الفشل
-      if(window.toast) toast(d.error||'تعذّر تحديث حالة القسم','e');
-      else alert(d.error||'تعذّر تحديث حالة القسم');
+      if(window.toast) toast(d.error||'<?= addslashes($t["js_f6b7fda13a"] ?? "تعذّر تحديث حالة القسم") ?>','e');
+      else alert(d.error||'<?= addslashes($t["js_f6b7fda13a"] ?? "تعذّر تحديث حالة القسم") ?>');
     }
   }).catch(()=>{
     checkbox.disabled = false;
@@ -417,7 +417,7 @@ function chLoad(){
             $('chTotalCount').textContent = _allChannels.length + ' قناة';
             chRender(1);
         } else {
-            al('alContainer', d.error || 'فشل جلب القنوات', 'e');
+            al('alContainer', d.error || '<?= addslashes($t["js_d956c455ec"] ?? "فشل جلب القنوات") ?>', 'e');
         }
     }).catch(e=>{
         $('chLoading').style.display='none';
@@ -543,7 +543,7 @@ function uploadChannelLogo(inp,inputId,previewId,statusId){
         try{
             const d=JSON.parse(xhr.responseText);
             if(d.success){$(inputId).value=d.url;statusEl.innerHTML=`<span style="color:#00D084"><i class="fas fa-check-circle"></i> تم رفع الصورة</span>`;previewEl.style.display='block';previewEl.querySelector('img').src=d.url;}
-            else statusEl.innerHTML=`<span style="color:#ff6b6b">${d.error||'خطأ في الرفع'}</span>`;
+            else statusEl.innerHTML=`<span style="color:#ff6b6b">${d.error||'<?= addslashes($t["js_5f7fcd9aa4"] ?? "خطأ في الرفع") ?>'}</span>`;
         }catch(e){statusEl.innerHTML=`<span style="color:#ff6b6b">خطأ</span>`;}
         inp.value='';
     };
@@ -578,18 +578,18 @@ function saveApiSettings(){
         omdb_key: omdb_key
     }).then(d => {
         if(d.success){
-            al('apiSaveAlert', '✅ تم حفظ إعدادات الـ API بنجاح في قاعدة البيانات', 's');
+            al('apiSaveAlert', '<?= addslashes($t["js_e1e5336db9"] ?? "✅ تم حفظ إعدادات الـ API بنجاح في قاعدة البيانات") ?>', 's');
             $('osU').value = os_user;
             $('osP').value = os_pass;
             $('osApiKey').value = os_key;
             
             // حقن تشغيل تسجيل الدخول التلقائي فور نجاح الحفظ
             if(os_user && os_pass && os_key){
-                al('apiSaveAlert', '✅ تم الحفظ، يتم الآن ربط اتصال OpenSubtitles تلقائياً...', 's');
+                al('apiSaveAlert', '<?= addslashes($t["js_d2ea5f0d39"] ?? "✅ تم الحفظ، يتم الآن ربط اتصال OpenSubtitles تلقائياً...") ?>', 's');
                 setTimeout(osLogin, 800); 
             }
         }else{
-            al('apiSaveAlert', d.error || 'حدث خطأ أثناء الحفظ', 'e');
+            al('apiSaveAlert', d.error || '<?= addslashes($t["js_ef0fb07a7c"] ?? "حدث خطأ أثناء الحفظ") ?>', 'e');
         }
     });
 }
@@ -628,14 +628,14 @@ function renderTmdbResults(res,items,ctx){
                 <div class="tmdb-item-title">${esc(title)}</div>
                 <div class="tmdb-item-year" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${year||'—'} ${typeHtml} ${rating}</div>
             </div>
-            <button type="button" class="tmdb-info-btn" onclick="event.preventDefault(); event.stopPropagation(); showTmdbInfo(${item.id}, '${mediaType}')" title="التفاصيل"><i class="fas fa-info"></i></button>
+            <button type="button" class="tmdb-info-btn" onclick="event.preventDefault(); event.stopPropagation(); showTmdbInfo(${item.id}, '${mediaType}')" title="<?= addslashes($t["js_7eca2366ca"] ?? "التفاصيل") ?>"><i class="fas fa-info"></i></button>
         </div>`;
     }).join('');
 }
 
 async function showTmdbInfo(id, type) {
     const key = getTmdbKey();
-    if (!key) { alert('مفتاح TMDB مفقود! يرجى إضافته في الإعدادات.'); return; }
+    if (!key) { alert('<?= addslashes($t["js_a778ba63bc"] ?? "مفتاح TMDB مفقود! يرجى إضافته في الإعدادات.") ?>'); return; }
     OM('tmdbInfoM');
     const body = $('tmdbInfoBody');
     body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3)"><div class="pspin" style="margin:0 auto 12px"></div>جاري جلب التفاصيل...</div>';
@@ -647,12 +647,12 @@ async function showTmdbInfo(id, type) {
             let dataEn = await resEn.json();
             data.overview = dataEn.overview;
         }
-        const title = data.title || data.name || 'بدون عنوان';
+        const title = data.title || data.name || '<?= addslashes($t["js_6499798673"] ?? "بدون عنوان") ?>';
         const poster = data.poster_path ? `https://image.tmdb.org/t/p/w300${data.poster_path}` : '';
         const year = (data.release_date || data.first_air_date || '').substring(0, 4);
         const rating = data.vote_average ? data.vote_average.toFixed(1) : '—';
         const genres = (data.genres || []).map(g => `<span class="bdg bc">${g.name}</span>`).join(' ');
-        const overview = data.overview || 'لا توجد قصة متوفرة لهذا العمل في الوقت الحالي.';
+        const overview = data.overview || '<?= addslashes($t["js_b562f1d794"] ?? "لا توجد قصة متوفرة لهذا العمل في الوقت الحالي.") ?>';
         const status = data.status || '—';
         const runTime = data.runtime ? `${data.runtime} دقيقة` : (data.episode_run_time && data.episode_run_time[0] ? `${data.episode_run_time[0]} دقيقة للحلقة` : '');
 
@@ -744,7 +744,7 @@ function _smartFallback(reason) {
     if (_pBackup && _pBackup.trim() && !_pTriedBackup && !_pUsingBackup) {
         _pTriedBackup = true;
         _pUsingBackup = true;
-        if (window.toast) toast('الرابط الأساسي لا يعمل — التبديل للرابط الاحتياطي تلقائياً…', 'i');
+        if (window.toast) toast('<?= addslashes($t["js_7fe2777816"] ?? "الرابط الأساسي لا يعمل — التبديل للرابط الاحتياطي تلقائياً…") ?>', 'i');
         $('pload').classList.remove('hid');
         $('perr').classList.remove('sh');
         $('pdot').className = 'pdot';
@@ -809,7 +809,7 @@ function testChannel(url, name, subUrl, backupUrl) {
         $('psubbar').style.display = 'flex';
         $('psubLabel').textContent = 'ترجمة: ' + _pSub.split('/').pop();
         const tr = document.createElement('track');
-        tr.kind = 'subtitles'; tr.srclang = 'ar'; tr.label = 'عربي';
+        tr.kind = 'subtitles'; tr.srclang = 'ar'; tr.label = '<?= addslashes($t["js_da88eccba0"] ?? "عربي") ?>';
         tr.src = _pSub; tr.default = true;
         vid.appendChild(tr);
         setTimeout(function() { if (vid.textTracks[0]) vid.textTracks[0].mode = 'showing'; }, 800);
@@ -836,7 +836,7 @@ function _playSource(url) {
     _pConnectTimer = setTimeout(function() {
         const v = $('tv');
         if (v && v.currentTime > 0 && !v.paused) return;
-        if (!_smartFallback('timeout')) pShowErr('انتهت مهلة الاتصال — رابط القناة لا يستجيب');
+        if (!_smartFallback('timeout')) pShowErr('<?= addslashes($t["js_2e19c321af"] ?? "انتهت مهلة الاتصال — رابط القناة لا يستجيب") ?>');
     }, 15000);
 
     const fmt = detectFmt(url);
@@ -860,7 +860,7 @@ function _playSource(url) {
         /* المكتبة تُحمَّل الآن بـ defer (لئلا تحجب اللوحة إن كان الـ CDN
            بطيئاً)، لذا قد لا تكون جاهزة إن ضغط المستخدم على المعاينة
            فوراً بعد فتح الصفحة. ننتظر جاهزيتها بدل إظهار رسالة
-           "المتصفح لا يدعم بث HLS" الخاطئة.
+           "<?= addslashes($t["js_4f835253bb"] ?? "المتصفح لا يدعم بث HLS") ?>" الخاطئة.
            نفس النمط المستخدم في واجهة الموقع (site/includes/main_js.php). */
         if (typeof Hls === 'undefined'
             && !vid.canPlayType('application/vnd.apple.mpegurl')
@@ -904,14 +904,14 @@ function _playSource(url) {
                         try { _hls.recoverMediaError(); } catch(e) {}
                         break;
                     default:
-                        if (!_smartFallback('hls-fatal')) pShowErr('خطأ في تشغيل قناة HLS');
+                        if (!_smartFallback('hls-fatal')) pShowErr('<?= addslashes($t["js_68a41ae22b"] ?? "خطأ في تشغيل قناة HLS") ?>');
                 }
             });
         } else if (vid.canPlayType('application/vnd.apple.mpegurl')) {
             // Safari / iOS — HLS أصلي
             vid.src = url; vid.play().catch(function(){}); _startWatchdog();
         } else {
-            if (!_smartFallback('hls-nosupport')) pShowErr('المتصفح لا يدعم بث HLS');
+            if (!_smartFallback('hls-nosupport')) pShowErr('<?= addslashes($t["js_4f835253bb"] ?? "المتصفح لا يدعم بث HLS") ?>');
         }
     }
     // ══════════════ MP4 / Direct ══════════════
@@ -943,7 +943,7 @@ function _playSource(url) {
         setTimeout(function() { if (vid.paused && _pUrl) vid.play().catch(function(){}); }, 3000);
     };
     vid.onerror = function() {
-        if (!_smartFallback('video-error')) pShowErr('تعذّر تشغيل هذا الرابط');
+        if (!_smartFallback('video-error')) pShowErr('<?= addslashes($t["js_ecc0e2b4cf"] ?? "تعذّر تشغيل هذا الرابط") ?>');
     };
 }
 
@@ -980,12 +980,12 @@ function _playTS(url, vid) {
         if ($('pload')) $('pload').classList.remove('hid');
         _ensureMpegts().then(function(ok) {
             if (ok) { _playTS(url, vid); }
-            else if (!_smartFallback('ts-nolib')) pShowErr('تعذّر تحميل مكتبة MPEG-TS — تحقق من الإنترنت');
+            else if (!_smartFallback('ts-nolib')) pShowErr('<?= addslashes($t["js_e2c60920f8"] ?? "تعذّر تحميل مكتبة MPEG-TS — تحقق من الإنترنت") ?>');
         });
         return;
     }
     if (!mpegts.getFeatureList().mseLivePlayback) {
-        if (!_smartFallback('ts-nomse')) pShowErr('المتصفح لا يدعم بث MPEG-TS');
+        if (!_smartFallback('ts-nomse')) pShowErr('<?= addslashes($t["js_2074af4fef"] ?? "المتصفح لا يدعم بث MPEG-TS") ?>');
         return;
     }
     try {
@@ -1010,14 +1010,14 @@ function _playTS(url, vid) {
                 try { _playerTS.unload(); _playerTS.load(); _playerTS.play().catch(function(){}); } catch(e) {}
                 return;
             }
-            if (!_smartFallback('ts-err')) pShowErr('خطأ في تشغيل قناة TS');
+            if (!_smartFallback('ts-err')) pShowErr('<?= addslashes($t["js_19014787f2"] ?? "خطأ في تشغيل قناة TS") ?>');
         });
 
         _playerTS.load();
         _playerTS.play().catch(function(){});
         _startWatchdog();
     } catch(e) {
-        if (!_smartFallback('ts-exception')) pShowErr('تعذّر تهيئة مشغّل TS');
+        if (!_smartFallback('ts-exception')) pShowErr('<?= addslashes($t["js_7b7425ad50"] ?? "تعذّر تهيئة مشغّل TS") ?>');
     }
 }
 
@@ -1026,7 +1026,7 @@ function pShowErr(msg) {
     $('perr').classList.add('sh');
     $('pdot').className = 'pdot err';
     var em = document.getElementById('perrMsg');
-    if (em) em.textContent = msg || 'تعذر تشغيل الفيديو';
+    if (em) em.textContent = msg || '<?= addslashes($t["js_e98bc75d8d"] ?? "تعذر تشغيل الفيديو") ?>';
 }
 function pRetry() {
     testChannel(_pPrimary || _pUrl, _pName, _pSub, _pBackup);
@@ -1062,11 +1062,11 @@ function toggleChannelActive(checkbox){
   api({ ajax_action:'toggle_channel_active', channel_id:chid, is_active:newState }).then(d=>{
     checkbox.disabled = false;
     if(d.success){
-      if(window.toast) toast(d.message||'تم التحديث','s');
+      if(window.toast) toast(d.message||'<?= addslashes($t["js_71326f4a7e"] ?? "تم التحديث") ?>','s');
     } else {
       checkbox.checked = !checkbox.checked; // تراجع عند الفشل
-      if(window.toast) toast(d.error||'تعذّر تحديث حالة القناة','e');
-      else alert(d.error||'تعذّر تحديث حالة القناة');
+      if(window.toast) toast(d.error||'<?= addslashes($t["js_3f57db664b"] ?? "تعذّر تحديث حالة القناة") ?>','e');
+      else alert(d.error||'<?= addslashes($t["js_3f57db664b"] ?? "تعذّر تحديث حالة القناة") ?>');
     }
   }).catch(()=>{
     checkbox.disabled = false;
@@ -1105,7 +1105,7 @@ function catBulkDelete(){
     if(d.success){
       if(window.toast) toast('تم حذف '+d.deleted+' قسم','s');
       setTimeout(()=>location.reload(), 900);
-    } else { if(window.toast) toast(d.error||'فشل الحذف','e'); else alert(d.error||'فشل الحذف'); }
+    } else { if(window.toast) toast(d.error||'<?= addslashes($t["js_eb88417b2c"] ?? "فشل الحذف") ?>','e'); else alert(d.error||'<?= addslashes($t["js_eb88417b2c"] ?? "فشل الحذف") ?>'); }
   });
 }
 
@@ -1139,7 +1139,7 @@ function chBulkDelete(){
     if(d.success){
       if(window.toast) toast('تم حذف '+d.deleted+' قناة','s');
       setTimeout(()=>location.reload(), 900);
-    } else { if(window.toast) toast(d.error||'فشل الحذف','e'); else alert(d.error||'فشل الحذف'); }
+    } else { if(window.toast) toast(d.error||'<?= addslashes($t["js_eb88417b2c"] ?? "فشل الحذف") ?>','e'); else alert(d.error||'<?= addslashes($t["js_eb88417b2c"] ?? "فشل الحذف") ?>'); }
   });
 }
 
@@ -1165,7 +1165,7 @@ function m3uFileSelected(inp){
       if(window.toast) toast('تم استيراد '+d.count+' قناة من الملف','s');
       setTimeout(()=>location.reload(), 1300);
     } else {
-      $('m3uFileStatus').innerHTML='<span style="color:#ff6b6b"><i class="fas fa-exclamation-triangle"></i> '+esc(d.error||'فشل الاستيراد')+'</span>';
+      $('m3uFileStatus').innerHTML='<span style="color:#ff6b6b"><i class="fas fa-exclamation-triangle"></i> '+esc(d.error||'<?= addslashes($t["js_8855875da2"] ?? "فشل الاستيراد") ?>')+'</span>';
     }
   }).catch(()=>{
     inp.value='';
@@ -1189,7 +1189,7 @@ function m3uImportFromUrl(){
       if(window.toast) toast('تم استيراد '+d.count+' قناة من الرابط','s');
       setTimeout(()=>location.reload(), 1300);
     } else {
-      $('m3uUrlStatus').innerHTML='<span style="color:#ff6b6b"><i class="fas fa-exclamation-triangle"></i> '+esc(d.error||'فشل الاستيراد')+'</span>';
+      $('m3uUrlStatus').innerHTML='<span style="color:#ff6b6b"><i class="fas fa-exclamation-triangle"></i> '+esc(d.error||'<?= addslashes($t["js_8855875da2"] ?? "فشل الاستيراد") ?>')+'</span>';
     }
   }).catch(()=>{
     btn.disabled = false;
@@ -1218,9 +1218,9 @@ function m3uRenderPlaylists(){
     const isUrl = p.source_type === 'url';
     const srcLabel = isUrl ? (p.source_url||p.name) : p.name;
     const typeBdg = isUrl ? '<span class="bdg bp"><i class="fas fa-link"></i> رابط</span>' : '<span class="bdg bc"><i class="fas fa-file"></i> ملف</span>';
-    const refreshBtn = isUrl ? `<button class="ib ed" title="تحديث من نفس الرابط" onclick="m3uRefreshPlaylist(${p.id})"><i class="fas fa-sync"></i></button>` : '';
-    const editBtn = isUrl ? `<button class="ib ed" title="تعديل الرابط (يحذف كل القنوات القديمة ويستورد من الرابط الجديد)" onclick="m3uEditPlaylist(${p.id},'${escA(p.source_url||'')}')"><i class="fas fa-pen"></i></button>` : '';
-    return `<tr><td><strong style="color:var(--t1)">${esc(srcLabel)}</strong></td><td>${typeBdg}</td><td><span class="bdg bg">${p.channels_count||0} قناة</span></td><td style="font-size:.75rem;color:var(--t3)">${esc(p.created_at||'')}</td><td><div class="acts">${refreshBtn}${editBtn}<button class="ib dl" title="حذف القائمة بالكامل مع كل قنواتها" onclick="m3uDeletePlaylist(${p.id},'${escA(srcLabel)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;
+    const refreshBtn = isUrl ? `<button class="ib ed" title="<?= addslashes($t["js_6688e7b41d"] ?? "تحديث من نفس الرابط") ?>" onclick="m3uRefreshPlaylist(${p.id})"><i class="fas fa-sync"></i></button>` : '';
+    const editBtn = isUrl ? `<button class="ib ed" title="<?= addslashes($t["js_84b91b33c7"] ?? "تعديل الرابط (يحذف كل القنوات القديمة ويستورد من الرابط الجديد)") ?>" onclick="m3uEditPlaylist(${p.id},'${escA(p.source_url||'')}')"><i class="fas fa-pen"></i></button>` : '';
+    return `<tr><td><strong style="color:var(--t1)">${esc(srcLabel)}</strong></td><td>${typeBdg}</td><td><span class="bdg bg">${p.channels_count||0} قناة</span></td><td style="font-size:.75rem;color:var(--t3)">${esc(p.created_at||'')}</td><td><div class="acts">${refreshBtn}${editBtn}<button class="ib dl" title="<?= addslashes($t["js_cba3cd6e74"] ?? "حذف القائمة بالكامل مع كل قنواتها") ?>" onclick="m3uDeletePlaylist(${p.id},'${escA(srcLabel)}')"><i class="fas fa-trash"></i></button></div></td></tr>`;
   }).join('');
   $('m3uPlaylistsTbl').style.display='table';
 }
@@ -1229,27 +1229,27 @@ function m3uEditPlaylist(id, currentUrl){
   const newUrl = prompt('أدخل رابط M3U الجديد.\nسيتم حذف كل القنوات القديمة المرتبطة بهذه القائمة بالكامل واستيرادها من جديد من الرابط:', currentUrl||'');
   if(newUrl===null) return;
   const u = newUrl.trim();
-  if(!u){ if(window.toast) toast('الرابط فارغ','e'); return; }
-  if(!/^https?:\/\//i.test(u)){ if(window.toast) toast('رابط غير صالح، يجب أن يبدأ بـ http:// أو https://','e'); else alert('رابط غير صالح'); return; }
-  if(window.toast) toast('جارٍ تعديل الرابط وإعادة الاستيراد…','i');
+  if(!u){ if(window.toast) toast('<?= addslashes($t["js_7a7ecb97b4"] ?? "الرابط فارغ") ?>','e'); return; }
+  if(!/^https?:\/\//i.test(u)){ if(window.toast) toast('<?= addslashes($t["js_42cfb06961"] ?? "رابط غير صالح، يجب أن يبدأ بـ http:// أو https://") ?>','e'); else alert('رابط غير صالح'); return; }
+  if(window.toast) toast('<?= addslashes($t["js_547662440f"] ?? "جارٍ تعديل الرابط وإعادة الاستيراد…") ?>','i');
   api({ajax_action:'edit_m3u_playlist', id:id, source_url:u}).then(d=>{
     if(d.success){
       if(window.toast) toast('تم تعديل الرابط — '+d.count+' قناة','s');
       setTimeout(()=>location.reload(), 1200);
     } else {
-      if(window.toast) toast(d.error||'فشل التعديل','e'); else alert(d.error||'فشل التعديل');
+      if(window.toast) toast(d.error||'<?= addslashes($t["js_3cf5fe35a7"] ?? "فشل التعديل") ?>','e'); else alert(d.error||'<?= addslashes($t["js_3cf5fe35a7"] ?? "فشل التعديل") ?>');
     }
   });
 }
 
 function m3uRefreshPlaylist(id){
-  if(!confirm('سيتم حذف كل قنوات هذه القائمة واستيرادها من جديد من نفس الرابط، متابعة؟')) return;
+  if(!confirm('<?= addslashes($t["js_9ff79b98f7"] ?? "سيتم حذف كل قنوات هذه القائمة واستيرادها من جديد من نفس الرابط، متابعة؟") ?>')) return;
   api({ajax_action:'refresh_m3u_playlist', id:id}).then(d=>{
     if(d.success){
       if(window.toast) toast('تم تحديث القائمة — '+d.count+' قناة','s');
       setTimeout(()=>location.reload(), 1200);
     } else {
-      if(window.toast) toast(d.error||'فشل التحديث','e'); else alert(d.error||'فشل التحديث');
+      if(window.toast) toast(d.error||'<?= addslashes($t["js_1c75bf722f"] ?? "فشل التحديث") ?>','e'); else alert(d.error||'<?= addslashes($t["js_1c75bf722f"] ?? "فشل التحديث") ?>');
     }
   });
 }
@@ -1258,10 +1258,10 @@ function m3uDeletePlaylist(id,name){
   if(!confirm('حذف القائمة "'+name+'" بالكامل مع كل القنوات التابعة لها؟')) return;
   api({ajax_action:'delete_m3u_playlist', id:id}).then(d=>{
     if(d.success){
-      if(window.toast) toast('تم حذف القائمة','s');
+      if(window.toast) toast('<?= addslashes($t["js_6fb80894ce"] ?? "تم حذف القائمة") ?>','s');
       setTimeout(()=>location.reload(), 1000);
     } else {
-      if(window.toast) toast(d.error||'فشل الحذف','e'); else alert(d.error||'فشل الحذف');
+      if(window.toast) toast(d.error||'<?= addslashes($t["js_eb88417b2c"] ?? "فشل الحذف") ?>','e'); else alert(d.error||'<?= addslashes($t["js_eb88417b2c"] ?? "فشل الحذف") ?>');
     }
   });
 }
@@ -1280,18 +1280,18 @@ function xtreamLogin(){
   const user = ($('xtUser').value||'').trim();
   const pass = ($('xtPass').value||'').trim();
   const name = ($('xtName').value||'').trim();
-  if(!host || !user || !pass){ xtreamSetStatus('xtLoginStatus','⚠️ يرجى ملء العنوان واسم المستخدم وكلمة المرور','e'); return; }
+  if(!host || !user || !pass){ xtreamSetStatus('xtLoginStatus','<?= addslashes($t["js_4ccfb0e923"] ?? "⚠️ يرجى ملء العنوان واسم المستخدم وكلمة المرور") ?>','e'); return; }
   const btn = $('xtLoginBtn'); btn.disabled = true; btn.innerHTML = '<span class="sp"></span> جارٍ التحقق...';
   $('xtImportBox').style.display = 'none';
-  xtreamSetStatus('xtLoginStatus','⏳ جارٍ الاتصال بالسيرفر...','i');
+  xtreamSetStatus('xtLoginStatus','<?= addslashes($t["js_9f6c5deab4"] ?? "⏳ جارٍ الاتصال بالسيرفر...") ?>','i');
   api({ajax_action:'xtream_login', host:host, username:user, password:pass, account_name:name}).then(d=>{
     btn.disabled = false; btn.innerHTML = '<i class="fas fa-right-to-bracket"></i>تسجيل الدخول والتحقق';
-    if(!d.success){ xtreamSetStatus('xtLoginStatus','❌ '+(d.error||'فشل تسجيل الدخول'),'e'); return; }
+    if(!d.success){ xtreamSetStatus('xtLoginStatus','❌ '+(d.error||'<?= addslashes($t["js_7a384c535f"] ?? "فشل تسجيل الدخول") ?>'),'e'); return; }
     _xtVerified = {host:d.host, username:user, password:pass, name:name};
     const ui = d.user_info||{}, si = d.server_info||{}, sup = d.supports||{}, cnt = d.counts||{};
-    const exp = ui.exp_date ? new Date(ui.exp_date*1000).toLocaleDateString('ar') : 'غير محدد';
+    const exp = ui.exp_date ? new Date(ui.exp_date*1000).toLocaleDateString('ar') : '<?= addslashes($t["js_cd09c30d57"] ?? "غير محدد") ?>';
     const conns = (ui.active_cons||'0')+' / '+(ui.max_connections||'∞');
-    xtreamSetStatus('xtLoginStatus','✅ تم تسجيل الدخول بنجاح','s');
+    xtreamSetStatus('xtLoginStatus','<?= addslashes($t["js_d271f18cea"] ?? "✅ تم تسجيل الدخول بنجاح") ?>','s');
     $('xtInfo').innerHTML =
       '<div style="display:flex;flex-wrap:wrap;gap:14px">'+
       '<span>👤 <b>'+esc(user)+'</b></span>'+
@@ -1305,13 +1305,13 @@ function xtreamLogin(){
       if(supported){ box.disabled=false; box.checked=true; span.style.opacity='1'; span.innerHTML=label+' <span style="color:var(--t3)">('+c+' قسم)</span>'; }
       else { box.disabled=true; box.checked=false; span.style.opacity='.45'; span.innerHTML=label+' <span style="color:var(--t3)">(غير مدعوم)</span>'; }
     };
-    setOpt('xtImpLive','xtLblLive',sup.live,'📡 القنوات',cnt.live);
-    setOpt('xtImpVod','xtLblVod',sup.vod,'🎬 الأفلام',cnt.vod);
-    setOpt('xtImpSeries','xtLblSeries',sup.series,'📺 المسلسلات',cnt.series);
+    setOpt('xtImpLive','xtLblLive',sup.live,'<?= addslashes($t["js_474354db32"] ?? "📡 القنوات") ?>',cnt.live);
+    setOpt('xtImpVod','xtLblVod',sup.vod,'<?= addslashes($t["js_15dcb28a89"] ?? "🎬 الأفلام") ?>',cnt.vod);
+    setOpt('xtImpSeries','xtLblSeries',sup.series,'<?= addslashes($t["js_94fd5e1b1e"] ?? "📺 المسلسلات") ?>',cnt.series);
     $('xtImportBox').style.display = 'block';
   }).catch(()=>{
     btn.disabled=false; btn.innerHTML='<i class="fas fa-right-to-bracket"></i>تسجيل الدخول والتحقق';
-    xtreamSetStatus('xtLoginStatus','❌ خطأ في الاتصال','e');
+    xtreamSetStatus('xtLoginStatus','<?= addslashes($t["js_59c223966a"] ?? "❌ خطأ في الاتصال") ?>','e');
   });
 }
 
@@ -1351,7 +1351,7 @@ function xtProgApply(p){
   const lbl = $('xtProgLabel');
   if(lbl){
     const icon = '<span class="sp" style="width:15px;height:15px;border-width:2px;"></span>';
-    let txt = p.label || 'جارٍ الاستيراد...';
+    let txt = p.label || '<?= addslashes($t["js_d9b31934ac"] ?? "جارٍ الاستيراد...") ?>';
     if(p.current) txt += ' — <span style="color:var(--t3); font-weight:500;">'+esc(p.current)+'</span>';
     lbl.innerHTML = icon + txt;
   }
@@ -1359,7 +1359,7 @@ function xtProgApply(p){
   const done = parseInt(p.done)||0, total = parseInt(p.total)||0;
   set('xtProgCount', total > 0
       ? (done.toLocaleString('en-US')+' من '+total.toLocaleString('en-US')+' — المتبقي '+Math.max(0,total-done).toLocaleString('en-US'))
-      : 'جارٍ جلب البيانات من السيرفر...');
+      : '<?= addslashes($t["js_79a67234ee"] ?? "جارٍ جلب البيانات من السيرفر...") ?>');
 
   set('xtCntLive', (parseInt(p.live)||0).toLocaleString('en-US'));
   set('xtCntVod',  (parseInt(p.vod)||0).toLocaleString('en-US'));
@@ -1390,11 +1390,11 @@ function xtPollStop(){
 }
 
 function xtreamImport(){
-  if(!_xtVerified){ xtreamSetStatus('xtImportStatus','⚠️ سجّل الدخول أولاً','e'); return; }
+  if(!_xtVerified){ xtreamSetStatus('xtImportStatus','<?= addslashes($t["js_0027ce8d8a"] ?? "⚠️ سجّل الدخول أولاً") ?>','e'); return; }
   const impLive = $('xtImpLive').checked ? '1':'0';
   const impVod = $('xtImpVod').checked ? '1':'0';
   const impSeries = $('xtImpSeries').checked ? '1':'0';
-  if(impLive==='0' && impVod==='0' && impSeries==='0'){ xtreamSetStatus('xtImportStatus','⚠️ اختر نوعاً واحداً على الأقل','e'); return; }
+  if(impLive==='0' && impVod==='0' && impSeries==='0'){ xtreamSetStatus('xtImportStatus','<?= addslashes($t["js_bcbf71d90a"] ?? "⚠️ اختر نوعاً واحداً على الأقل") ?>','e'); return; }
   const btn = $('xtImportBtn'), stopBtn = $('xtStopBtn');
   const restore = ()=>{
     xtPollStop(); xtProgShow(false);
@@ -1406,7 +1406,7 @@ function xtreamImport(){
   btn.disabled=true; btn.innerHTML='<span class="sp"></span> جارٍ الاستيراد... قد يستغرق وقتاً';
   if(stopBtn) stopBtn.style.display='inline-flex'; // يظهر زر الإيقاف أثناء العملية فقط
   xtProgReset(); xtProgShow(true); xtPollStart();   // شريط التقدّم الحيّ
-  xtreamSetStatus('xtImportStatus','⏳ جارٍ جلب المحتوى وإضافته... لا تغلق الصفحة','i');
+  xtreamSetStatus('xtImportStatus','<?= addslashes($t["js_ab53ac9855"] ?? "⏳ جارٍ جلب المحتوى وإضافته... لا تغلق الصفحة") ?>','i');
 
   api({
     ajax_action:'xtream_import',
@@ -1415,17 +1415,17 @@ function xtreamImport(){
     import_live:impLive, import_vod:impVod, import_series:impSeries
   }).then(d=>{
     restore();
-    if(!d.success){ xtreamSetStatus('xtImportStatus','❌ '+(d.error||'فشل الاستيراد'),'e'); return; }
+    if(!d.success){ xtreamSetStatus('xtImportStatus','❌ '+(d.error||'<?= addslashes($t["js_8855875da2"] ?? "فشل الاستيراد") ?>'),'e'); return; }
     const im = d.imported||{};
     const skipMsg = (d.skipped>0) ? ' — تم تخطي '+d.skipped+' عنصراً لبيانات غير صالحة' : '';
     xtreamSetStatus('xtImportStatus','✅ تمت الإضافة: '+(im.live||0)+' قناة، '+(im.vod||0)+' فيلم، '+(im.series||0)+' مسلسل'+skipMsg, skipMsg ? 'i' : 's');
-    if(window.toast) toast('تمت إضافة حساب Xtream بنجاح','s');
+    if(window.toast) toast('<?= addslashes($t["js_495bf476d7"] ?? "تمت إضافة حساب Xtream بنجاح") ?>','s');
     $('xtHost').value=''; $('xtUser').value=''; $('xtPass').value=''; $('xtName').value='';
     $('xtImportBox').style.display='none'; _xtVerified=null;
     xtreamLoadAccounts();
   }).catch(()=>{
     restore();
-    xtreamSetStatus('xtImportStatus','❌ خطأ في الاتصال أثناء الاستيراد','e');
+    xtreamSetStatus('xtImportStatus','<?= addslashes($t["js_caada21a56"] ?? "❌ خطأ في الاتصال أثناء الاستيراد") ?>','e');
   });
 }
 
@@ -1437,11 +1437,11 @@ function xtreamAbortImport(){
     stopBtn.disabled = true;
     stopBtn.innerHTML = '<span class="sp" style="width:14px;height:14px;border-width:2px;margin-left:8px;vertical-align:middle;"></span> جارٍ الإيقاف...';
   }
-  xtreamSetStatus('xtImportStatus','🛑 تم إرسال إشارة الإيقاف — بانتظار توقف السيرفر...','e');
+  xtreamSetStatus('xtImportStatus','<?= addslashes($t["js_5fcea0bcea"] ?? "🛑 تم إرسال إشارة الإيقاف — بانتظار توقف السيرفر...") ?>','e');
   api({ajax_action:'xtream_import_abort'}).then(()=>{
-    if(window.toast) toast('تم إرسال إشارة الإيقاف','i');
+    if(window.toast) toast('<?= addslashes($t["js_6b7e5b5797"] ?? "تم إرسال إشارة الإيقاف") ?>','i');
   }).catch(()=>{
-    if(window.toast) toast('تعذر إرسال إشارة الإيقاف','e');
+    if(window.toast) toast('<?= addslashes($t["js_c282d89a59"] ?? "تعذر إرسال إشارة الإيقاف") ?>','e');
   });
 }
 
@@ -1458,13 +1458,13 @@ function xtreamLoadAccounts(){
       const sync = a.last_sync ? esc(a.last_sync) : '—';
       
       let maxCons = '?', actCons = '?';
-      let expDateStr = 'غير محدد';
-      let uStatus = 'غير معروف';
+      let expDateStr = '<?= addslashes($t["js_cd09c30d57"] ?? "غير محدد") ?>';
+      let uStatus = '<?= addslashes($t["js_6b5e6d57ba"] ?? "غير معروف") ?>';
       
       try {
         if(a.user_info) {
           const uInfo = typeof a.user_info === 'string' ? JSON.parse(a.user_info) : a.user_info;
-          maxCons = uInfo.max_connections || 'غير محدود';
+          maxCons = uInfo.max_connections || '<?= addslashes($t["js_e9eae126d5"] ?? "غير محدود") ?>';
           actCons = uInfo.active_cons || 0;
           uStatus = uInfo.status || 'Active';
           if(uInfo.exp_date && uInfo.exp_date !== "null" && uInfo.exp_date !== "") {
@@ -1489,9 +1489,9 @@ function xtreamLoadAccounts(){
         '</td>'+
         '<td style="text-align:center;">'+
            '<div style="display:inline-flex; align-items:center; background:var(--bg2); padding:5px 12px; border-radius:20px; border:1px solid var(--border);">'+
-              '<span style="color:#ef4444; font-weight:bold; margin-left:5px;" title="المستخدم حالياً">'+actCons+'</span>'+
+              '<span style="color:#ef4444; font-weight:bold; margin-left:5px;" title="<?= addslashes($t["js_72779aef59"] ?? "المستخدم حالياً") ?>">'+actCons+'</span>'+
               '<span style="color:var(--t3); margin:0 5px;">/</span>'+
-              '<span style="color:#8b5cf6; font-weight:bold;" title="الحد الأقصى">'+maxCons+'</span>'+
+              '<span style="color:#8b5cf6; font-weight:bold;" title="<?= addslashes($t["js_6c46de6c21"] ?? "الحد الأقصى") ?>">'+maxCons+'</span>'+
            '</div>'+
         '</td>'+
         '<td style="text-align:center;">'+
@@ -1504,9 +1504,9 @@ function xtreamLoadAccounts(){
         '<td><div style="font-size:0.9rem; font-weight:500; color:var(--t2);"><i class="far fa-clock" style="margin-left:6px; color:#10b981;"></i>'+expDateStr+'</div></td>'+
         '<td><div style="font-size:0.8rem; color:var(--t3);">'+sync+'</div></td>'+
         '<td style="text-align:center;"><div class="acts" style="justify-content:center;">'+
-          '<button class="ib ed" title="تعديل بيانات الحساب" onclick="xtreamEdit('+a.id+',\''+escA(a.name||'')+'\',\''+escA(a.host||'')+'\',\''+escA(a.username||'')+'\')"><i class="fas fa-pen"></i></button>'+
-          '<button class="ib" style="color:#f59e0b" title="تسجيل الخروج ومسح كل المحتوى المستورد" onclick="xtreamLogout('+a.id+',\''+escA(a.name||'')+'\')"><i class="fas fa-sign-out-alt"></i></button>'+
-          '<button class="ib dl" title="حذف الحساب نهائياً وكل محتواه المستورد" onclick="xtreamDelete('+a.id+',\''+escA(a.name||'')+'\')"><i class="fas fa-trash"></i></button>'+
+          '<button class="ib ed" title="<?= addslashes($t["js_db7b3daf6e"] ?? "تعديل بيانات الحساب") ?>" onclick="xtreamEdit('+a.id+',\''+escA(a.name||'')+'\',\''+escA(a.host||'')+'\',\''+escA(a.username||'')+'\')"><i class="fas fa-pen"></i></button>'+
+          '<button class="ib" style="color:#f59e0b" title="<?= addslashes($t["js_260ee36811"] ?? "تسجيل الخروج ومسح كل المحتوى المستورد") ?>" onclick="xtreamLogout('+a.id+',\''+escA(a.name||'')+'\')"><i class="fas fa-sign-out-alt"></i></button>'+
+          '<button class="ib dl" title="<?= addslashes($t["js_151dc83e02"] ?? "حذف الحساب نهائياً وكل محتواه المستورد") ?>" onclick="xtreamDelete('+a.id+',\''+escA(a.name||'')+'\')"><i class="fas fa-trash"></i></button>'+
         '</div></td>'+
       '</tr>';
     }).join('');
@@ -1538,37 +1538,37 @@ function xtreamDelete(id, name){
   api({ajax_action:'xtream_delete', id:id}).then(d=>{
     if(d && d.success){
       if(d.purge_client) xtreamPurgeClient();
-      if(window.toast) toast(d.message||'تم حذف الحساب وكل محتواه','s');
+      if(window.toast) toast(d.message||'<?= addslashes($t["js_31d6e6d95d"] ?? "تم حذف الحساب وكل محتواه") ?>','s');
       xtreamLoadAccounts();
     } else {
-      const msg = (d && d.error) ? d.error : 'فشل الحذف (رد غير متوقع من السيرفر)';
+      const msg = (d && d.error) ? d.error : '<?= addslashes($t["js_e4aa82cbe1"] ?? "فشل الحذف (رد غير متوقع من السيرفر)") ?>';
       if(window.toast) toast(msg,'e'); else alert(msg);
       console.error('xtream_delete failed:', d);
     }
   }).catch(err=>{
-    if(window.toast) toast('خطأ في الاتصال أثناء الحذف — راجع Console','e');
-    else alert('خطأ في الاتصال أثناء الحذف');
+    if(window.toast) toast('<?= addslashes($t["js_cab27271c6"] ?? "خطأ في الاتصال أثناء الحذف — راجع Console") ?>','e');
+    else alert('<?= addslashes($t["js_fa818dbb28"] ?? "خطأ في الاتصال أثناء الحذف") ?>');
     console.error('xtream_delete error:', err);
   });
 }
 
 function xtreamLogout(id, name){
   if(!confirm('تسجيل الخروج من حساب "'+name+'"؟\n\nسيتم حذف كل القنوات والأفلام والمسلسلات والحلقات المستوردة منه،\nمع الإبقاء على بيانات الحساب لإعادة الاستيراد لاحقاً.')) return;
-  if(window.toast) toast('جارٍ تسجيل الخروج ومسح المحتوى...','i');
+  if(window.toast) toast('<?= addslashes($t["js_d62264e7dd"] ?? "جارٍ تسجيل الخروج ومسح المحتوى...") ?>','i');
   api({ajax_action:'xtream_logout', id:id}).then(d=>{
     if(d && d.success){
       if(d.purge_client) xtreamPurgeClient();
-      if(window.toast) toast(d.message||'تم تسجيل الخروج ومسح كل محتوى الحساب','s');
+      if(window.toast) toast(d.message||'<?= addslashes($t["js_02a2a13b3d"] ?? "تم تسجيل الخروج ومسح كل محتوى الحساب") ?>','s');
       xtreamLoadAccounts();
     } else {
-      const msg = (d && d.error) ? d.error : 'فشل تسجيل الخروج (رد غير متوقع من السيرفر)';
+      const msg = (d && d.error) ? d.error : '<?= addslashes($t["js_250a11a2df"] ?? "فشل تسجيل الخروج (رد غير متوقع من السيرفر)") ?>';
       if(window.toast) toast(msg,'e'); else alert(msg);
       console.error('xtream_logout failed:', d);
     }
   }).catch(err=>{
     // بدون هذا الـ catch كان الزر يفشل بصمت تماماً
-    if(window.toast) toast('خطأ في الاتصال أثناء تسجيل الخروج — راجع Console','e');
-    else alert('خطأ في الاتصال أثناء تسجيل الخروج');
+    if(window.toast) toast('<?= addslashes($t["js_e12612b8a1"] ?? "خطأ في الاتصال أثناء تسجيل الخروج — راجع Console") ?>','e');
+    else alert('<?= addslashes($t["js_facc09b392"] ?? "خطأ في الاتصال أثناء تسجيل الخروج") ?>');
     console.error('xtream_logout error:', err);
   });
 }
@@ -1597,9 +1597,9 @@ function xtreamOptimizeDb(){
           'الحلقات: <b>'+(parseInt(c.episodes)||0).toLocaleString('en-US')+'</b> · '+
           'الإجمالي: <b>'+rows.toLocaleString('en-US')+'</b> صف'+
         '</div>';
-      if(window.toast) toast(d.message||'تم','s');
+      if(window.toast) toast(d.message||'<?= addslashes($t["js_a5ebef8fad"] ?? "تم") ?>','s');
     } else {
-      const msg = (d && d.error) ? d.error : 'فشل التطبيق';
+      const msg = (d && d.error) ? d.error : '<?= addslashes($t["js_07ae73f588"] ?? "فشل التطبيق") ?>';
       st.innerHTML = '<span style="color:#ef4444; font-weight:600;">'+esc(msg)+'</span>';
       if(window.toast) toast(msg,'e');
       console.error('xtream_optimize_db failed:', d);
@@ -1628,12 +1628,12 @@ function xtreamFixVod(){
       const moved = parseInt(d.moved)||0;
       st.innerHTML = moved > 0
         ? '<span style="color:#10b981; font-weight:700;"><i class="fas fa-circle-check" style="margin-left:6px;"></i>'+esc(d.message||'')+'</span>'
-        : '<span style="color:var(--t3);"><i class="fas fa-circle-info" style="margin-left:6px;"></i>'+esc(d.message||'لا توجد أفلام تحتاج نقلاً')+'</span>';
-      if(window.toast) toast(d.message||'تم','s');
+        : '<span style="color:var(--t3);"><i class="fas fa-circle-info" style="margin-left:6px;"></i>'+esc(d.message||'<?= addslashes($t["js_4c0be426fc"] ?? "لا توجد أفلام تحتاج نقلاً") ?>')+'</span>';
+      if(window.toast) toast(d.message||'<?= addslashes($t["js_a5ebef8fad"] ?? "تم") ?>','s');
       if(typeof loadChannels==='function') loadChannels();
       if(typeof loadSeries==='function') loadSeries();
     } else {
-      const msg = (d && d.error) ? d.error : 'فشل النقل';
+      const msg = (d && d.error) ? d.error : '<?= addslashes($t["js_278aa6276f"] ?? "فشل النقل") ?>';
       st.innerHTML = '<span style="color:#ef4444; font-weight:600;">'+esc(msg)+'</span>';
       if(window.toast) toast(msg,'e');
       console.error('xtream_fix_vod failed:', d);
@@ -1656,9 +1656,9 @@ function xtreamPurgeAll(){
   // تأكيد ثانٍ بالكتابة
   const typed = prompt('للتأكيد النهائي، اكتب الكلمة التالية بالضبط:\n\nمسح', '');
   if(typed === null) return;
-  if(typed.trim() !== 'مسح'){
-    if(window.toast) toast('لم تتم كتابة كلمة التأكيد بشكل صحيح — تم الإلغاء','e');
-    else alert('لم تتم كتابة كلمة التأكيد بشكل صحيح — تم الإلغاء');
+  if(typed.trim() !== '<?= addslashes($t["js_ec2ce8be93"] ?? "مسح") ?>'){
+    if(window.toast) toast('<?= addslashes($t["js_efba36e0bd"] ?? "لم تتم كتابة كلمة التأكيد بشكل صحيح — تم الإلغاء") ?>','e');
+    else alert('<?= addslashes($t["js_efba36e0bd"] ?? "لم تتم كتابة كلمة التأكيد بشكل صحيح — تم الإلغاء") ?>');
     return;
   }
 
@@ -1681,13 +1681,13 @@ function xtreamPurgeAll(){
           'الأقسام: <strong>'+(s.categories||0)+'</strong>'+
           (s.cat_kept ? ' <br><span style="color:#f59e0b;">تم الإبقاء على '+s.cat_kept+' قسم لاحتوائه محتوى من مصادر أخرى</span>' : '')+
         '</div>';
-      if(window.toast) toast('تم مسح كل محتوى Xtream نهائياً','s');
+      if(window.toast) toast('<?= addslashes($t["js_d47d7d493f"] ?? "تم مسح كل محتوى Xtream نهائياً") ?>','s');
       cb.checked = false; btn.disabled = true;
       xtreamLoadAccounts();
     } else {
       btn.disabled = !cb.checked;
-      st.innerHTML = '<span style="color:#ef4444; font-weight:600;"><i class="fas fa-circle-xmark" style="margin-left:6px;"></i>'+(d.error||'فشل المسح')+'</span>';
-      if(window.toast) toast(d.error||'فشل المسح','e');
+      st.innerHTML = '<span style="color:#ef4444; font-weight:600;"><i class="fas fa-circle-xmark" style="margin-left:6px;"></i>'+(d.error||'<?= addslashes($t["js_44501a7fe7"] ?? "فشل المسح") ?>')+'</span>';
+      if(window.toast) toast(d.error||'<?= addslashes($t["js_44501a7fe7"] ?? "فشل المسح") ?>','e');
     }
   }).catch(()=>{
     btn.innerHTML = '<i class="fas fa-bomb" style="margin-left:8px;"></i> مسح كل محتوى Xtream إجبارياً';
@@ -1697,24 +1697,24 @@ function xtreamPurgeAll(){
 }
 
 function xtreamEdit(id, name, host, user){
-  const newName = prompt('اسم الحساب:', name||'');
+  const newName = prompt('<?= addslashes($t["js_67dcae1956"] ?? "اسم الحساب:") ?>', name||'');
   if(newName===null) return;
-  const newHost = prompt('العنوان (Host):', host||'');
+  const newHost = prompt('<?= addslashes($t["js_f18f7fe75f"] ?? "العنوان (Host):") ?>', host||'');
   if(newHost===null) return;
-  const newUser = prompt('اسم المستخدم:', user||'');
+  const newUser = prompt('<?= addslashes($t["js_00ed040501"] ?? "اسم المستخدم:") ?>', user||'');
   if(newUser===null) return;
-  const newPass = prompt('كلمة المرور الجديدة (اتركها فارغة للإبقاء على الحالية):', '');
+  const newPass = prompt('<?= addslashes($t["js_b4059afe48"] ?? "كلمة المرور الجديدة (اتركها فارغة للإبقاء على الحالية):") ?>', '');
   if(newPass===null) return;
   api({ajax_action:'xtream_update', id:id, account_name:newName.trim(), host:newHost.trim(), username:newUser.trim(), password:newPass.trim()}).then(d=>{
-    if(d && d.success){ if(window.toast) toast('تم تحديث بيانات الحساب','s'); xtreamLoadAccounts(); }
+    if(d && d.success){ if(window.toast) toast('<?= addslashes($t["js_015496a86a"] ?? "تم تحديث بيانات الحساب") ?>','s'); xtreamLoadAccounts(); }
     else {
-      const msg = (d && d.error) ? d.error : 'فشل التعديل (رد غير متوقع من السيرفر)';
+      const msg = (d && d.error) ? d.error : '<?= addslashes($t["js_fbc778c050"] ?? "فشل التعديل (رد غير متوقع من السيرفر)") ?>';
       if(window.toast) toast(msg,'e'); else alert(msg);
       console.error('xtream_update failed:', d);
     }
   }).catch(err=>{
-    if(window.toast) toast('خطأ في الاتصال أثناء التعديل — راجع Console','e');
-    else alert('خطأ في الاتصال أثناء التعديل');
+    if(window.toast) toast('<?= addslashes($t["js_0243ba3b97"] ?? "خطأ في الاتصال أثناء التعديل — راجع Console") ?>','e');
+    else alert('<?= addslashes($t["js_87665569ca"] ?? "خطأ في الاتصال أثناء التعديل") ?>');
     console.error('xtream_update error:', err);
   });
 }
@@ -1755,7 +1755,7 @@ function loadSeries(reset){
       _srBusy = false;
       $('srLoading').style.display='none';
       console.error('get_series error:', err);
-      if(window.toast) toast('تعذر تحميل شاشتي','e');
+      if(window.toast) toast('<?= addslashes($t["js_4efefb9b8f"] ?? "تعذر تحميل شاشتي") ?>','e');
     });
 }
 
@@ -1805,7 +1805,7 @@ function srMoreBtn(show){
 }
 function srOpen(id,name){_srCurId=id;_srCurName=name;$('srGrid').style.display='none';$('srEmpty').style.display='none';$('srFilterBar').style.display='none';$('epsPanel').style.display='block';$('srBackBtn').style.display='';$('srBulkBtn').style.display='';$('srBreadcrumb').style.display='flex';$('srBCName').textContent=name;$('srAddBtn').style.display='none';loadEps();}
 function srBack(){$('epsPanel').style.display='none';$('srBackBtn').style.display='none';$('srBulkBtn').style.display='none';$('srBreadcrumb').style.display='none';$('srFilterBar').style.display='flex';$('srAddBtn').style.display='';$('srAddBtn').innerHTML='<i class="fas fa-plus"></i>مسلسل / فيلم جديد';$('srAddBtn').setAttribute('onclick',"OM('addSeriesM')");loadSeries();}
-function srAdd(){const n=$('srName').value.trim(),cid=$('srCat').value,desc=$('srDesc').value.trim(),poster=$('srPoster').value.trim();if(!n||!cid){al('srAddAlert','أدخل الاسم واختر القسم','e');return;}api({ajax_action:'add_series',name:n,category_id:cid,description:desc,poster_url:poster}).then(d=>{if(d.success){CM('addSeriesM');loadSeries();$('srName').value='';$('srCat').value='';$('srDesc').value='';$('srPoster').value='';$('srPosterThumb').style.display='none';$('srPosterStatus').innerHTML='';}else al('srAddAlert',d.error||'خطأ','e');});}
+function srAdd(){const n=$('srName').value.trim(),cid=$('srCat').value,desc=$('srDesc').value.trim(),poster=$('srPoster').value.trim();if(!n||!cid){al('srAddAlert','<?= addslashes($t["js_ad5e9922dd"] ?? "أدخل الاسم واختر القسم") ?>','e');return;}api({ajax_action:'add_series',name:n,category_id:cid,description:desc,poster_url:poster}).then(d=>{if(d.success){CM('addSeriesM');loadSeries();$('srName').value='';$('srCat').value='';$('srDesc').value='';$('srPoster').value='';$('srPosterThumb').style.display='none';$('srPosterStatus').innerHTML='';}else al('srAddAlert',d.error||'<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>','e');});}
 /* يستقبل الآن المعرّف فقط ويجلب التفاصيل الكاملة (الوصف غير موجود في قائمة الشبكة) */
 function srEdit(idOrObj){
   const fill = (s)=>{
@@ -1823,13 +1823,13 @@ function srEdit(idOrObj){
   if(!id) return;
   api({ajax_action:'get_series_one', id:id}).then(d=>{
     if(d && d.success && d.data) fill(d.data);
-    else if(window.toast) toast((d&&d.error)||'تعذر جلب البيانات','e');
+    else if(window.toast) toast((d&&d.error)||'<?= addslashes($t["js_ad1459f7c2"] ?? "تعذر جلب البيانات") ?>','e');
   }).catch(err=>{
     console.error('get_series_one error:', err);
     if(window.toast) toast('خطأ في الاتصال','e');
   });
 }
-function srEditSave(){const id=$('eSrId').value,n=$('eSrName').value.trim(),cid=$('eSrCat').value,desc=$('eSrDesc').value.trim(),poster=$('eSrPoster').value.trim();if(!n||!cid){al('eSrAlert','البيانات ناقصة','e');return;}api({ajax_action:'edit_series',id,name:n,category_id:cid,description:desc,poster_url:poster}).then(d=>{if(d.success){CM('editSeriesM');loadSeries();}else al('eSrAlert',d.error||'خطأ','e');});}
+function srEditSave(){const id=$('eSrId').value,n=$('eSrName').value.trim(),cid=$('eSrCat').value,desc=$('eSrDesc').value.trim(),poster=$('eSrPoster').value.trim();if(!n||!cid){al('eSrAlert','<?= addslashes($t["js_7f5b2af5ee"] ?? "البيانات ناقصة") ?>','e');return;}api({ajax_action:'edit_series',id,name:n,category_id:cid,description:desc,poster_url:poster}).then(d=>{if(d.success){CM('editSeriesM');loadSeries();}else al('eSrAlert',d.error||'<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>','e');});}
 function srDel(id,name){if(!confirm(`حذف "${name}" مع جميع فيديوهاته/حلقاته؟`))return;api({ajax_action:'delete_series',id}).then(d=>{if(d.success)loadSeries();});}
 
 let _epGlobalCache=[]; 
@@ -1838,10 +1838,10 @@ let _epGlobalCache=[];
                 const t = $('epsTbody');
                 t.innerHTML = _epGlobalCache.map((e, index) => `<tr class="drag-row" draggable="true" data-index="${index}" style="cursor: grab;">
                     <td style="display:flex; align-items:center; gap:8px">
-                        <i class="fas fa-grip-lines" style="color:var(--t3); font-size:1.1rem;" title="اسحبني لأي مكان للترتيب"></i>
+                        <i class="fas fa-grip-lines" style="color:var(--t3); font-size:1.1rem;" title="<?= addslashes($t["js_982f56c09f"] ?? "اسحبني لأي مكان للترتيب") ?>"></i>
                         <input type="checkbox" class="ep-chk" value="${e.id}" onchange="epChkCtrl()" style="width:16px;height:16px; cursor:pointer; accent-color:var(--red);">
                     </td>
-                    <td><div onclick='testChannel("${escA(e.stream_url)}","${escA(e.title)}","${escA(e.subtitle_url||'')}")' style="color:var(--red);font-size:1.35rem;padding-left:4px;cursor:pointer" title="تشغيل الفيديو"><i class="fas fa-play-circle"></i></div></td>
+                    <td><div onclick='testChannel("${escA(e.stream_url)}","${escA(e.title)}","${escA(e.subtitle_url||'')}")' style="color:var(--red);font-size:1.35rem;padding-left:4px;cursor:pointer" title="<?= addslashes($t["js_843be96dd9"] ?? "تشغيل الفيديو") ?>"><i class="fas fa-play-circle"></i></div></td>
                     <td style="color:var(--t1);font-weight:700;font-size:.87rem;">${esc(e.title)}</td>
                     <td style="font-size:.65rem;color:var(--t3);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" dir="ltr">${esc(e.stream_url.split('/').pop())}</td>
                     <td>${e.subtitle_url?'<span class="bdg bg"><i class="fas fa-closed-captioning"></i></span>':'<span style="color:var(--t3);">-</span>'}</td>
@@ -1892,7 +1892,7 @@ let _epGlobalCache=[];
                             const movedItem = _epGlobalCache.splice(srcIdx, 1)[0];
                             _epGlobalCache.splice(targetIdx, 0, movedItem);
                             
-                            // تفعيل إشعار "ترتيب يدوي" لعدم خلط الاختيارات
+                            // تفعيل إشعار "<?= addslashes($t["js_ddfdc4baa5"] ?? "ترتيب يدوي") ?>" لعدم خلط الاختيارات
                             $('epSortAZ').value = 'manual';
                             
                             _renderEpRows(); // ريندر لضبط الشكل المقلوب
@@ -1914,7 +1914,7 @@ let _epGlobalCache=[];
                 $('epsEmpty').style.display = 'block';
                 
                 api({ ajax_action: 'update_episodes_order', orders: JSON.stringify(sorted_payload) }).then(res => {
-                    if(res.success){ al('epsEmpty','✅ تم الحفظ واستنساخ هندستك اليدوية وتأمينها !','s'); setTimeout(()=>{ $('epsEmpty').style.display='none'; al('epsEmpty','','');}, 3000); }
+                    if(res.success){ al('epsEmpty','<?= addslashes($t["js_48a98b7c3f"] ?? "✅ تم الحفظ واستنساخ هندستك اليدوية وتأمينها !") ?>','s'); setTimeout(()=>{ $('epsEmpty').style.display='none'; al('epsEmpty','','');}, 3000); }
                     else { al('epsEmpty', res.error, 'e'); }
                 });
             }
@@ -1997,7 +1997,7 @@ function convertCheckedEpsToMp4() {
                  if (x.debug) {
                      msg += `تفاصيل كشف النظام للسبب:\n=================\n${x.debug}`;
                  } else {
-                     msg += "فشلت الأوامر لأسباب تقنية تخص بايثون أو Xampp.";
+                     msg += "<?= addslashes($t["js_14f762f645"] ?? "فشلت الأوامر لأسباب تقنية تخص بايثون أو Xampp.") ?>";
                  }
              }
              
@@ -2006,11 +2006,11 @@ function convertCheckedEpsToMp4() {
              loadEps(); // سحب بيانات المجلد بعد هندسته لتجد كل شيء تغير بصيغته أمامت.
              
         } else { 
-            alert('❌ رُفضت الإعدادات الخادمة: ' + (x.error || 'عقدة انصات')); 
+            alert('❌ رُفضت الإعدادات الخادمة: ' + (x.error || '<?= addslashes($t["js_8ff6a47f0c"] ?? "عقدة انصات") ?>')); 
         }
         cbtn.innerHTML = `<i class="fas fa-magic"></i> التحويل السريع لـ MP4`;
     }).catch(() => {
-        alert("انقطع اتصالك بالمتصفح ولكن الأباتشي مستمر بالحرق من خلف الكواليس. أعمل تحديث للمتصفح لترا النتائج لاحقاً.");
+        alert("<?= addslashes($t["js_a03f35e567"] ?? "انقطع اتصالك بالمتصفح ولكن الأباتشي مستمر بالحرق من خلف الكواليس. أعمل تحديث للمتصفح لترا النتائج لاحقاً.") ?>");
         cbtn.innerHTML = `<i class="fas fa-magic"></i> التحويل السريع لـ MP4`;
         cbtn.disabled = false;
     });
@@ -2029,23 +2029,23 @@ function convertCheckedEpsToMp4() {
                 api({ ajax_action: 'delete_episodes_bulk', ids: JSON.stringify(targets) }).then(x => {
                     dbtn.disabled = false;
                     if(x.success) {
-                         alert('✅ عملية مُطهِّرة تمت باحتراف. تم الاستئصال تماماً للمساحات المختارة!');
+                         alert('<?= addslashes($t["js_1271a5f9a5"] ?? "✅ عملية مُطهِّرة تمت باحتراف. تم الاستئصال تماماً للمساحات المختارة!") ?>');
                          $('chkEpsMaster').checked = false;
                          loadEps();
-                    } else { alert('انفلات جزئي أو فشل المسار المعمّق'); }
+                    } else { alert('<?= addslashes($t["js_ce2ca8168e"] ?? "انفلات جزئي أو فشل المسار المعمّق") ?>'); }
                 });
             }
             
 function etab(t){document.querySelectorAll('#addEpM .etab').forEach(b=>b.classList.remove('on'));event.target.classList.add('on');$('etab-url').style.display=t==='url'?'':'none';$('etab-file').style.display=t==='file'?'':'none';}
 let _epSubUpUrl='',_epFileUpUrl='';
-function epFileUpload(inp){const f=inp.files[0];if(!f)return;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_episode_video');fd.append('episode',f);fd.append('series_id',_srCurId);$('epFilePBar').style.width='0%';$('epFileProgress').style.display='block';$('epFileChip').style.display='none';const xhr=new XMLHttpRequest();xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);$('epFilePBar').style.width=p+'%';}};xhr.onload=()=>{$('epFileProgress').style.display='none';try{const d=JSON.parse(xhr.responseText);if(d.success){_epFileUpUrl=d.url;$('epUploadedUrl').value=d.url;$('epFileChip').style.display='flex';$('epFileChipName').textContent=d.original;$('epNum').value=d.episode_number||1;if(!$('epTitle').value.trim())$('epTitle').value=(d.original).replace(/\.[^.]+$/,'');}else al('addEpAlert',d.error||'خطأ في الرفع','e');}catch(e){al('addEpAlert','خطأ في الاستجابة','e');}};xhr.onerror=()=>{$('epFileProgress').style.display='none';al('addEpAlert','انقطع الاتصال','e');};xhr.open('POST',location.href);xhr.send(fd);}
-function epSubUpload(inp){const f=inp.files[0];if(!f)return;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_episode_subtitle');fd.append('subtitle',f);fd.append('series_id',_srCurId);fetch(location.href,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success){_epSubUpUrl=d.url;$('epSubUrl').value=d.url;$('epSubChip').style.display='flex';$('epSubChipName').textContent=f.name;}else al('addEpAlert',d.error||'خطأ','e');});}
-function epAdd(){const num=parseInt($('epNum').value)||1;const title=$('epTitle').value.trim()||'الحلقة '+num;const urlTab=$('etab-url').style.display!=='none';let url=urlTab?$('epUrl').value.trim():($('epUploadedUrl').value.trim());const sub=$('epSubUrl').value.trim()||_epSubUpUrl;const dur=$('epDur').value.trim();if(!url){al('addEpAlert','أدخل رابط الفيديو أو ارفع ملفاً','e');return;}api({ajax_action:'add_episode',series_id:_srCurId,episode_number:num,title,stream_url:url,subtitle_url:sub,duration:dur}).then(d=>{if(d.success){CM('addEpM');loadEps();$('epNum').value=parseInt($('epNum').value)+1;$('epTitle').value='';$('epUrl').value='';$('epSubUrl').value='';$('epDur').value='';$('epUploadedUrl').value='';$('epFileChip').style.display='none';$('epSubChip').style.display='none';_epSubUpUrl='';_epFileUpUrl='';}else al('addEpAlert',d.error||'خطأ','e');});}
+function epFileUpload(inp){const f=inp.files[0];if(!f)return;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_episode_video');fd.append('episode',f);fd.append('series_id',_srCurId);$('epFilePBar').style.width='0%';$('epFileProgress').style.display='block';$('epFileChip').style.display='none';const xhr=new XMLHttpRequest();xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);$('epFilePBar').style.width=p+'%';}};xhr.onload=()=>{$('epFileProgress').style.display='none';try{const d=JSON.parse(xhr.responseText);if(d.success){_epFileUpUrl=d.url;$('epUploadedUrl').value=d.url;$('epFileChip').style.display='flex';$('epFileChipName').textContent=d.original;$('epNum').value=d.episode_number||1;if(!$('epTitle').value.trim())$('epTitle').value=(d.original).replace(/\.[^.]+$/,'');}else al('addEpAlert',d.error||'<?= addslashes($t["js_5f7fcd9aa4"] ?? "خطأ في الرفع") ?>','e');}catch(e){al('addEpAlert','<?= addslashes($t["js_5bc041445d"] ?? "خطأ في الاستجابة") ?>','e');}};xhr.onerror=()=>{$('epFileProgress').style.display='none';al('addEpAlert','<?= addslashes($t["js_61363eb6c0"] ?? "انقطع الاتصال") ?>','e');};xhr.open('POST',location.href);xhr.send(fd);}
+function epSubUpload(inp){const f=inp.files[0];if(!f)return;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_episode_subtitle');fd.append('subtitle',f);fd.append('series_id',_srCurId);fetch(location.href,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success){_epSubUpUrl=d.url;$('epSubUrl').value=d.url;$('epSubChip').style.display='flex';$('epSubChipName').textContent=f.name;}else al('addEpAlert',d.error||'<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>','e');});}
+function epAdd(){const num=parseInt($('epNum').value)||1;const title=$('epTitle').value.trim()||'الحلقة '+num;const urlTab=$('etab-url').style.display!=='none';let url=urlTab?$('epUrl').value.trim():($('epUploadedUrl').value.trim());const sub=$('epSubUrl').value.trim()||_epSubUpUrl;const dur=$('epDur').value.trim();if(!url){al('addEpAlert','<?= addslashes($t["js_11a4e34616"] ?? "أدخل رابط الفيديو أو ارفع ملفاً") ?>','e');return;}api({ajax_action:'add_episode',series_id:_srCurId,episode_number:num,title,stream_url:url,subtitle_url:sub,duration:dur}).then(d=>{if(d.success){CM('addEpM');loadEps();$('epNum').value=parseInt($('epNum').value)+1;$('epTitle').value='';$('epUrl').value='';$('epSubUrl').value='';$('epDur').value='';$('epUploadedUrl').value='';$('epFileChip').style.display='none';$('epSubChip').style.display='none';_epSubUpUrl='';_epFileUpUrl='';}else al('addEpAlert',d.error||'<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>','e');});}
 
 function eEpSubUpload(inp){const f=inp.files[0];if(!f)return;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_subtitle_file');fd.append('subtitle',f);$('eEpSubStatus').innerHTML='<span style="color:var(--gold)"><i class="fas fa-spinner fa-spin"></i> جارٍ الرفع...</span>';fetch(location.href,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success){$('eEpSub').value=d.vtt_url||d.url;$('eEpSubStatus').innerHTML='<span style="color:#00D084"><i class="fas fa-check-circle"></i> تم رفع الترجمة بنجاح</span>';}else{$('eEpSubStatus').innerHTML='<span style="color:#ff6b6b"><i class="fas fa-exclamation-triangle"></i> '+d.error+'</span>';}}).catch(()=>{if(window.al)al('eEpAlert','خطأ في الاتصال','e');});}
 function eEpOpenOS(){$('eEpOsQ').value=$('eEpTitle').value.trim();$('eEpOsRes').style.display='none';$('eEpOsAl').innerHTML='';OM('eEpOsM');}
-function eEpOsSearch(){const q=$('eEpOsQ').value.trim(),lang=$('eEpOsLang').value;if(!q){$('eEpOsAl').innerHTML='<span style="color:#ff6b6b">أدخل اسم الفيلم</span>';return;}$('eEpOsSearchBtn').disabled=true;$('eEpOsSearchBtn').innerHTML='...';$('eEpOsRes').style.display='block';$('eEpOsRes').innerHTML='<div style="padding:14px;color:var(--t3);text-align:center"><i class="fas fa-spinner fa-spin"></i> جارٍ البحث...</div>';api({ajax_action:'search_subtitles',query:q,language:lang}).then(d=>{$('eEpOsSearchBtn').disabled=false;$('eEpOsSearchBtn').innerHTML='<i class="fas fa-search"></i> بحث';if(!d.success){$('eEpOsRes').innerHTML='<div style="padding:14px;color:#ff6b6b;text-align:center">'+(d.error||'لا توجد نتائج')+'</div>';return;}$('eEpOsRes').innerHTML=d.data.map((s,i)=>`<div class="sri" onclick="eEpDlSub(${s.file_id})"><div class="sri-main"><div class="sri-title">${s.title.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div class="sri-meta"><span>${s.language.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span><span>${s.downloads} تنزيل</span></div></div><button class="btn btn-g bsm"><i class="fas fa-download"></i></button></div>`).join('');});}
-function eEpDlSub(fid){$('eEpOsAl').innerHTML='<span style="color:var(--gold)"><i class="fas fa-spinner fa-spin"></i> جارٍ التنزيل...</span>';api({ajax_action:'download_subtitle',file_id:fid}).then(d=>{if(!d.success){$('eEpOsAl').innerHTML='<span style="color:#ff6b6b">'+(d.error||'خطأ')+'</span>';return;}$('eEpSub').value=d.vtt_url||d.url;$('eEpSubStatus').innerHTML='<span style="color:#00D084"><i class="fas fa-check-circle"></i> تم جلب الترجمة من OS</span>';CM('eEpOsM');});}
+function eEpOsSearch(){const q=$('eEpOsQ').value.trim(),lang=$('eEpOsLang').value;if(!q){$('eEpOsAl').innerHTML='<span style="color:#ff6b6b">أدخل اسم الفيلم</span>';return;}$('eEpOsSearchBtn').disabled=true;$('eEpOsSearchBtn').innerHTML='...';$('eEpOsRes').style.display='block';$('eEpOsRes').innerHTML='<div style="padding:14px;color:var(--t3);text-align:center"><i class="fas fa-spinner fa-spin"></i> جارٍ البحث...</div>';api({ajax_action:'search_subtitles',query:q,language:lang}).then(d=>{$('eEpOsSearchBtn').disabled=false;$('eEpOsSearchBtn').innerHTML='<i class="fas fa-search"></i> بحث';if(!d.success){$('eEpOsRes').innerHTML='<div style="padding:14px;color:#ff6b6b;text-align:center">'+(d.error||'<?= addslashes($t["js_40b06b2d41"] ?? "لا توجد نتائج") ?>')+'</div>';return;}$('eEpOsRes').innerHTML=d.data.map((s,i)=>`<div class="sri" onclick="eEpDlSub(${s.file_id})"><div class="sri-main"><div class="sri-title">${s.title.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div><div class="sri-meta"><span>${s.language.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span><span>${s.downloads} تنزيل</span></div></div><button class="btn btn-g bsm"><i class="fas fa-download"></i></button></div>`).join('');});}
+function eEpDlSub(fid){$('eEpOsAl').innerHTML='<span style="color:var(--gold)"><i class="fas fa-spinner fa-spin"></i> جارٍ التنزيل...</span>';api({ajax_action:'download_subtitle',file_id:fid}).then(d=>{if(!d.success){$('eEpOsAl').innerHTML='<span style="color:#ff6b6b">'+(d.error||'<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>')+'</span>';return;}$('eEpSub').value=d.vtt_url||d.url;$('eEpSubStatus').innerHTML='<span style="color:#00D084"><i class="fas fa-check-circle"></i> تم جلب الترجمة من OS</span>';CM('eEpOsM');});}
 
 function epEdit(e){
     $('eEpId').value=e.id;
@@ -2075,7 +2075,7 @@ function epEditSave(){
           dur=$('eEpDur').value.trim(),
           newSeriesId=$('eEpSeriesId').value;
           
-    if(!title||!url){al('eEpAlert','البيانات ناقصة','e');return;}
+    if(!title||!url){al('eEpAlert','<?= addslashes($t["js_7f5b2af5ee"] ?? "البيانات ناقصة") ?>','e');return;}
     
     api({
         ajax_action: 'edit_episode',
@@ -2089,9 +2089,9 @@ function epEditSave(){
     }).then(d=>{
         if(d.success){
             CM('editEpM');
-            if (newSeriesId != _srCurId) { alert("✅ تم سحب ونقل هذا الملف إلى المسلسل الآخر ببراعة!"); }
+            if (newSeriesId != _srCurId) { alert("<?= addslashes($t["js_a31dc2cfa7"] ?? "✅ تم سحب ونقل هذا الملف إلى المسلسل الآخر ببراعة!") ?>"); }
             loadEps();
-        } else al('eEpAlert', d.error||'خطأ','e');
+        } else al('eEpAlert', d.error||'<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>','e');
     });
 }
 
@@ -2099,7 +2099,7 @@ function epDel(id,name){if(!confirm(`حذف الفيديو/الحلقة "${name}
 
 let _bulkFiles=[];
 function bulkPreview(files){_bulkFiles=Array.from(files);if(!_bulkFiles.length)return;$('bulkStartBtn').style.display='';$('bulkPreviewList').style.display='block';$('bulkPreviewTitle').textContent=_bulkFiles.length+' مسار للملفات جاهز';const totalSz=_bulkFiles.reduce((s,f)=>s+f.size,0);$('bulkTotalSize').textContent=fmtSz(totalSz);$('bulkItems').innerHTML=_bulkFiles.map((f,i)=>{return`<div class="ep-item" id="bitem-${i}"><div style="width:28px;height:28px;border-radius:50%;background:var(--s3);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:.7rem"><i class="fas fa-play-circle"></i></div><div style="flex:1;min-width:0;font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:bold">${esc(f.name.replace(/\.[^.]+$/, ''))}</div><span style="font-size:.72rem;color:var(--t3)">${fmtSz(f.size)}</span><span class="ep-stat" id="bstat-${i}">تأهب للرفع..</span></div>`;}).join('');}
-async function bulkUpload(){if(!_bulkFiles.length||!_srCurId){al('bulkAlert','تأكد من اختيار الملفات','e');return;}$('bulkStartBtn').disabled=true;$('bulkProgress').style.display='block';let done=0,errs=0;for(let i=0;i<_bulkFiles.length;i++){const f=_bulkFiles[i];$('bstat-'+i).textContent='في العملية..';$('bstat-'+i).className='ep-stat up';let vidName=(f.name).replace(/\.[^.]+$/,'');$('bulkCurFile').innerHTML=`<b style="color:var(--t1)">${esc(vidName)}</b>`;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_episode_video');fd.append('episode',f);fd.append('series_id',_srCurId);try{const d=await new Promise((res,rej)=>{const x=new XMLHttpRequest();let t0=Date.now(), l0=0; x.upload.onprogress=(e)=>{if(e.lengthComputable){const p=Math.round((e.loaded/e.total)*100);$('bulkPBar').style.width=p+'%';let t1=Date.now(),dt=(t1-t0)/1000;let sp='جاري التوزيع الشبكي..';if(dt>=0.65){sp=fmtSz((e.loaded-l0)/dt)+'/ث';t0=t1;l0=e.loaded;} $('bulkProgPct').innerHTML=`<span style="color:#00D084" dir="ltr">⏳ ${sp}</span> &nbsp; <b>${p}%</b>`;}};x.onload=()=>{try{res(JSON.parse(x.responseText));}catch(err){rej();}};x.onerror=()=>rej();x.open('POST',location.href);x.send(fd);});if(d.success){const title=(d.original||f.name).replace(/\.[^.]+$/,'');const d2=await api({ajax_action:'add_episode',series_id:_srCurId,episode_number:(i+1),title:title,stream_url:d.url,subtitle_url:'',duration:''});if(d2.success){done++;$('bstat-'+i).textContent='✅ دُمج واكتمل';$('bstat-'+i).className='ep-stat ok';}else{errs++;$('bstat-'+i).textContent='❌ صُد بخادم الداتا';$('bstat-'+i).className='ep-stat err';}}else{errs++;$('bstat-'+i).textContent='❌ رُفض الرفع كلياً';$('bstat-'+i).className='ep-stat err';}}catch(e){errs++;$('bstat-'+i).textContent='❌ فُصل من العوامل';$('bstat-'+i).className='ep-stat err';}}$('bulkPBar').style.width='100%';$('bulkProgPct').textContent='100%';$('bulkCurFile').textContent='';$('bulkResult').style.display='block';$('bulkResult').innerHTML=`<div class="al ${errs?'al-e':'al-s'}" style="margin:0"><i class="fas fa-${errs?'exclamation-circle':'check-circle'}"></i> خلاصة النتائج الحسابية: تم تأمين وتسجيل ( ${done} ) ملفات خاضعة للاستدامة، وسُقط (${errs}).</div>`;$('bulkStartBtn').disabled=false;_bulkFiles=[];if(_srCurId)loadEps();}
+async function bulkUpload(){if(!_bulkFiles.length||!_srCurId){al('bulkAlert','<?= addslashes($t["js_5c15dbc1d5"] ?? "تأكد من اختيار الملفات") ?>','e');return;}$('bulkStartBtn').disabled=true;$('bulkProgress').style.display='block';let done=0,errs=0;for(let i=0;i<_bulkFiles.length;i++){const f=_bulkFiles[i];$('bstat-'+i).textContent='في العملية..';$('bstat-'+i).className='ep-stat up';let vidName=(f.name).replace(/\.[^.]+$/,'');$('bulkCurFile').innerHTML=`<b style="color:var(--t1)">${esc(vidName)}</b>`;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_episode_video');fd.append('episode',f);fd.append('series_id',_srCurId);try{const d=await new Promise((res,rej)=>{const x=new XMLHttpRequest();let t0=Date.now(), l0=0; x.upload.onprogress=(e)=>{if(e.lengthComputable){const p=Math.round((e.loaded/e.total)*100);$('bulkPBar').style.width=p+'%';let t1=Date.now(),dt=(t1-t0)/1000;let sp='جاري التوزيع الشبكي..';if(dt>=0.65){sp=fmtSz((e.loaded-l0)/dt)+'<?= addslashes($t["js_a493ba5532"] ?? "/ث") ?>';t0=t1;l0=e.loaded;} $('bulkProgPct').innerHTML=`<span style="color:#00D084" dir="ltr">⏳ ${sp}</span> &nbsp; <b>${p}%</b>`;}};x.onload=()=>{try{res(JSON.parse(x.responseText));}catch(err){rej();}};x.onerror=()=>rej();x.open('POST',location.href);x.send(fd);});if(d.success){const title=(d.original||f.name).replace(/\.[^.]+$/,'');const d2=await api({ajax_action:'add_episode',series_id:_srCurId,episode_number:(i+1),title:title,stream_url:d.url,subtitle_url:'',duration:''});if(d2.success){done++;$('bstat-'+i).textContent='✅ دُمج واكتمل';$('bstat-'+i).className='ep-stat ok';}else{errs++;$('bstat-'+i).textContent='❌ صُد بخادم الداتا';$('bstat-'+i).className='ep-stat err';}}else{errs++;$('bstat-'+i).textContent='❌ رُفض الرفع كلياً';$('bstat-'+i).className='ep-stat err';}}catch(e){errs++;$('bstat-'+i).textContent='❌ فُصل من العوامل';$('bstat-'+i).className='ep-stat err';}}$('bulkPBar').style.width='100%';$('bulkProgPct').textContent='100%';$('bulkCurFile').textContent='';$('bulkResult').style.display='block';$('bulkResult').innerHTML=`<div class="al ${errs?'al-e':'al-s'}" style="margin:0"><i class="fas fa-${errs?'exclamation-circle':'check-circle'}"></i> خلاصة النتائج الحسابية: تم تأمين وتسجيل ( ${done} ) ملفات خاضعة للاستدامة، وسُقط (${errs}).</div>`;$('bulkStartBtn').disabled=false;_bulkFiles=[];if(_srCurId)loadEps();}
 
 let VID={file:null,filename:'',url:'',subFile:'',subUrl:'',subVttUrl:'',opt:'none'};
 let smartDlInterval = null;
@@ -2114,7 +2114,7 @@ function vtab(t){
 
 function vidSmartDl(){
     const url = $('smartUrlInp').value.trim();
-    if(!url){ al('v1alert','أدخل رابط مباشر صالح','e'); return; }
+    if(!url){ al('v1alert','<?= addslashes($t["js_384f171fb5"] ?? "أدخل رابط مباشر صالح") ?>','e'); return; }
 
     const btn = $('smartDlBtn');
     btn.disabled = true;
@@ -2124,7 +2124,7 @@ function vidSmartDl(){
     $('vidPBar').style.width = '0%';
     $('vidPBar').style.animation = 'none'; 
     $('vidPct').textContent = '0%';
-    $('vidPLabel').textContent = 'جاري سحب خصائص الرابط...';
+    $('vidPLabel').textContent = '<?= addslashes($t["js_bd6609876d"] ?? "جاري سحب خصائص الرابط...") ?>';
     $('cancelDlBtn').style.display = 'none';
     $('vidProgSp').style.display = 'inline-block';
     $('vidChip').style.display = 'none';
@@ -2137,7 +2137,7 @@ function vidSmartDl(){
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-download"></i> محاولة سحب الرابط مجدداً';
             $('vidProg').style.display = 'none';
-            al('v1alert', initData.error || 'عذراً الرابط يرفض الاتصال، قم بتجربة رابط آخر مباشر!', 'e');
+            al('v1alert', initData.error || '<?= addslashes($t["js_971ce3cd84"] ?? "عذراً الرابط يرفض الاتصال، قم بتجربة رابط آخر مباشر!") ?>', 'e');
             return;
         }
 
@@ -2160,8 +2160,8 @@ function vidSmartDl(){
                     let nowTime = performance.now(); let timeDiff = (nowTime - lastTime) / 1000; 
                     let loadedDiff = curLoaded - lastLoaded; 
                     
-                    let speedTxt = "جاري الحساب";
-                    if(timeDiff > 0 && loadedDiff > 0) { speedTxt = fmtSz(loadedDiff / timeDiff) + '/ث'; }
+                    let speedTxt = "<?= addslashes($t["js_efb4c83052"] ?? "جاري الحساب") ?>";
+                    if(timeDiff > 0 && loadedDiff > 0) { speedTxt = fmtSz(loadedDiff / timeDiff) + '<?= addslashes($t["js_a493ba5532"] ?? "/ث") ?>'; }
                     lastLoaded = curLoaded; lastTime = nowTime;
 
                     let pct = 0;
@@ -2176,7 +2176,7 @@ function vidSmartDl(){
                         $('vidPBar').style.width = '100%';
                         $('vidPBar').style.animation = 'bk 1.5s ease infinite'; 
                         $('vidPLabel').innerHTML = `<span style="color:#00D084;font-weight:bold;margin-left:8px;" dir="ltr">[ سرعة السيرفر: ${speedTxt} ]</span> <span dir="ltr">سحب إلى الان: ${fmtSz(curLoaded)}</span>`;
-                        $('vidPct').textContent = 'جارٍ...';
+                        $('vidPct').textContent = '<?= addslashes($t["js_d5353ea52f"] ?? "جارٍ...") ?>';
                     }
                 }
             }).catch(()=>{}); // منع تدمير المتصفح من الاخطاء الدورية 
@@ -2196,41 +2196,41 @@ function vidSmartDl(){
                 $('vidChipSize').textContent = fmtSz(d.size); $('vNext1').disabled = false;
                 const title = originalName.replace(/\.[^.]+$/,'').replace(/[._\-]/g,' ').replace(/\b(720p|1080p|4k|bdrip|web|hdtv|bluray)\b/gi,'').trim();
                 $('osQ').value = title; $('vChanName').value = title;
-                al('v1alert', '🚀 انتهى الحفظ تماماً وأصبح الملف في قلب خوادمك!', 's');
+                al('v1alert', '<?= addslashes($t["js_f3423159fe"] ?? "🚀 انتهى الحفظ تماماً وأصبح الملف في قلب خوادمك!") ?>', 's');
                 $('smartUrlInp').value = '';
-            } else { al('v1alert', d.error || 'لقد أمرت النظام بوقف التحميل أو توقف المزوّد.', 'e'); }
+            } else { al('v1alert', d.error || '<?= addslashes($t["js_476e010a27"] ?? "لقد أمرت النظام بوقف التحميل أو توقف المزوّد.") ?>', 'e'); }
         }).catch(err =>{
              clearInterval(smartDlInterval); btn.disabled = false; btn.innerHTML = '<i class="fas fa-download"></i>حاول مرة اخرى';
              $('vidProg').style.display='none'; $('cancelDlBtn').style.display = 'none';
-             al('v1alert','انتهت مهلة المراقبة في المتصفح، ولكن التحميل الفعلي قد يكون شغال خلف الكواليس داخل إدارة الفيديوهات.', 'i');
+             al('v1alert','<?= addslashes($t["js_15b7ab2a9c"] ?? "انتهت مهلة المراقبة في المتصفح، ولكن التحميل الفعلي قد يكون شغال خلف الكواليس داخل إدارة الفيديوهات.") ?>', 'i');
         });
     });
 }
 
 function cancelSmartDl(fname) {
-    if(!confirm('سيتسبب هذا بقطع تدفق السحب الخارجي وحذف بقاياه. متابعة؟')) return;
+    if(!confirm('<?= addslashes($t["js_7dc5e27f90"] ?? "سيتسبب هذا بقطع تدفق السحب الخارجي وحذف بقاياه. متابعة؟") ?>')) return;
     $('cancelDlBtn').disabled = true;
     $('cancelDlBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> أبلغنا السيرفر.. يتم الإعدام!';
     api({ajax_action: 'abort_smart_dl', filename: fname}); // إلقاء إشارة الإيقاف القسرية للمتغير
 }
 
-function vidUpload(inp){const f=inp.files[0];if(!f)return;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_video');fd.append('video',f);$('vidProg').style.display='block';$('cancelDlBtn').style.display='none';$('vidProgSp').style.display='inline-block';$('vidPBar').style.animation='none';$('vidChip').style.display='none';const xhr=new XMLHttpRequest();xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);$('vidPBar').style.width=p+'%';$('vidPct').textContent=p+'%';$('vidPLabel').textContent=p<100?'رفع '+fmtSz(e.loaded)+' / '+fmtSz(f.size):'معالجة…';}};xhr.onload=()=>{$('vidProg').style.display='none';const raw=xhr.responseText.trim();if(!raw){al('v1alert','الخادم لم يُرجع رداً — تحقق من إعدادات PHP','e');return;}let d;try{d=JSON.parse(raw);}catch(ex){const preview=raw.replace(/<[^>]+>/g,'').substring(0,300);al('v1alert','خطأ في الاستجابة: '+preview,'e');return;}if(d.success){VID.filename=d.filename;VID.url=d.url;VID.file=f;$('vidChip').style.display='flex';$('vidChipName').textContent=d.original;$('vidChipSize').textContent=fmtSz(f.size);$('vNext1').disabled=false;const title=d.original.replace(/\.[^.]+$/,'').replace(/[._\-]/g,' ').replace(/\b(720p|1080p|4k|bdrip|web|hdtv|bluray)\b/gi,'').trim();$('osQ').value=title;$('vChanName').value=title;al('v1alert','✅ تم رفع الفيديو بنجاح','s');}else{let msg=d.error||'خطأ غير معروف';if(d.debug)msg+=' — '+d.debug;al('v1alert',msg,'e');}};xhr.onerror=()=>{$('vidProg').style.display='none';al('v1alert','انقطع الاتصال بالخادم','e');};xhr.open('POST',location.href);xhr.send(fd);}
+function vidUpload(inp){const f=inp.files[0];if(!f)return;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_video');fd.append('video',f);$('vidProg').style.display='block';$('cancelDlBtn').style.display='none';$('vidProgSp').style.display='inline-block';$('vidPBar').style.animation='none';$('vidChip').style.display='none';const xhr=new XMLHttpRequest();xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);$('vidPBar').style.width=p+'%';$('vidPct').textContent=p+'%';$('vidPLabel').textContent=p<100?'رفع '+fmtSz(e.loaded)+' / '+fmtSz(f.size):'معالجة…';}};xhr.onload=()=>{$('vidProg').style.display='none';const raw=xhr.responseText.trim();if(!raw){al('v1alert','<?= addslashes($t["js_04fc18b79b"] ?? "الخادم لم يُرجع رداً — تحقق من إعدادات PHP") ?>','e');return;}let d;try{d=JSON.parse(raw);}catch(ex){const preview=raw.replace(/<[^>]+>/g,'').substring(0,300);al('v1alert','خطأ في الاستجابة: '+preview,'e');return;}if(d.success){VID.filename=d.filename;VID.url=d.url;VID.file=f;$('vidChip').style.display='flex';$('vidChipName').textContent=d.original;$('vidChipSize').textContent=fmtSz(f.size);$('vNext1').disabled=false;const title=d.original.replace(/\.[^.]+$/,'').replace(/[._\-]/g,' ').replace(/\b(720p|1080p|4k|bdrip|web|hdtv|bluray)\b/gi,'').trim();$('osQ').value=title;$('vChanName').value=title;al('v1alert','<?= addslashes($t["js_2bf2deb231"] ?? "✅ تم رفع الفيديو بنجاح") ?>','s');}else{let msg=d.error||'خطأ غير معروف';if(d.debug)msg+=' — '+d.debug;al('v1alert',msg,'e');}};xhr.onerror=()=>{$('vidProg').style.display='none';al('v1alert','<?= addslashes($t["js_ba2f373772"] ?? "انقطع الاتصال بالخادم") ?>','e');};xhr.open('POST',location.href);xhr.send(fd);}
 function vidDebug(){api({ajax_action:'debug_upload'}).then(d=>{const dbg=$('v1debug');dbg.style.display='block';if(d.success){const ok='✅',no='❌';dbg.innerHTML=`<strong>إعدادات PHP:</strong><br>upload_max_filesize: <b>${d.upload_max_filesize}</b><br>post_max_size: <b>${d.post_max_size}</b><br>مجلد الرفع: <b>${d.upload_dir}</b><br>المجلد موجود: ${d.dir_exists?ok:no}<br>قابل للكتابة: ${d.dir_writable?ok:no}<br>PHP: ${d.php_version}<br><br><small style="color:var(--t3)">إذا كانت القيم 8M أو أقل، أضف للـ .htaccess:<br>php_value upload_max_filesize 2048M<br>php_value post_max_size 2048M</small>`;}else dbg.innerHTML='خطأ: '+d.error;});}
 function vidReset(){VID={file:null,filename:'',url:'',subFile:'',subUrl:'',subVttUrl:'',opt:'none'};$('vidChip').style.display='none';$('vidFileIn').value='';$('vNext1').disabled=true;al('v1alert','','');}
 function vidGo(step){if(step===3){$('mSumV').textContent=VID.filename||'—';$('mSumS').textContent=VID.subFile?(VID.subFile+' ✅'):'بدون ترجمة';}document.querySelectorAll('.vp').forEach(p=>p.classList.remove('act'));document.querySelectorAll('.vs').forEach(v=>v.classList.remove('act'));$('vp'+step).classList.add('act');$('vs'+step).classList.add('act');for(let i=1;i<step;i++)$('vs'+i).classList.add('done');}
 function vidSubOpt(opt){VID.opt=opt;document.querySelectorAll('.so').forEach(s=>s.classList.remove('sel'));$('so-'+opt).classList.add('sel');$('osCard').style.display=opt==='search'?'block':'none';$('subUpCard').style.display=opt==='upload'?'block':'none';}
-function subFileUpload(inp){const f=inp.files[0];if(!f)return;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_subtitle_file');fd.append('subtitle',f);al('subAl','<span class="sp"></span> جارٍ الرفع…','i');fetch(location.href,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success){VID.subFile=d.filename;VID.subUrl=d.url;$('upSubChip').style.display='flex';$('upSubName').textContent=f.name;al('subAl','✅ تم','s');}else al('subAl',d.error||'خطأ','e');});}
+function subFileUpload(inp){const f=inp.files[0];if(!f)return;const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_subtitle_file');fd.append('subtitle',f);al('subAl','<span class="sp"></span> جارٍ الرفع…','i');fetch(location.href,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success){VID.subFile=d.filename;VID.subUrl=d.url;$('upSubChip').style.display='flex';$('upSubName').textContent=f.name;al('subAl','<?= addslashes($t["js_bcebd8697a"] ?? "✅ تم") ?>','s');}else al('subAl',d.error||'<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>','e');});}
 
 function osLogin(){
     const u=$('osU').value.trim(),p=$('osP').value.trim(),k=$('osApiKey').value.trim();
-    if(!u||!p){al('osLAlert','أدخل اسم المستخدم وكلمة المرور','e');return;}
-    if(!k){al('osLAlert','أدخل مفتاح API','e');return;}
+    if(!u||!p){al('osLAlert','<?= addslashes($t["js_c2be271a9b"] ?? "أدخل اسم المستخدم وكلمة المرور") ?>','e');return;}
+    if(!k){al('osLAlert','<?= addslashes($t["js_ce68d0845e"] ?? "أدخل مفتاح API") ?>','e');return;}
     $('osLBtn').disabled=true;$('osLBtn').innerHTML='<span class="sp"></span>';
     api({ajax_action:'os_login',username:u,password:p,api_key:k}).then(d=>{
         $('osLBtn').disabled=false;$('osLBtn').innerHTML='<i class="fas fa-sign-in-alt"></i>تسجيل الدخول';
         if(d.success){
             $('osNL').style.display='none';$('osL').style.display='flex';$('osLUser').textContent=d.username;
-        }else al('osLAlert',d.error||'خطأ','e');
+        }else al('osLAlert',d.error||'<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>','e');
     });
 }
 function osLogout(){
@@ -2239,9 +2239,9 @@ function osLogout(){
     });
 }
 
-function osSearch(){const q=$('osQ').value.trim(),lang=$('osLang').value;if(!q){al('osAl','أدخل اسم الفيلم','e');return;}$('osSearchBtn').disabled=true;$('osSearchBtn').innerHTML='<span class="sp"></span>';$('osRes').style.display='flex';$('osRes').innerHTML=`<div style="padding:14px;color:var(--t3);text-align:center"><span class="sp"></span> جارٍ البحث…</div>`;al('osAl','','');api({ajax_action:'search_subtitles',query:q,language:lang}).then(d=>{$('osSearchBtn').disabled=false;$('osSearchBtn').innerHTML='<i class="fas fa-search"></i>بحث';if(!d.success){al('osAl',d.error||'لا توجد نتائج','e');$('osRes').style.display='none';return;}$('osRes').innerHTML=d.data.map((s,i)=>`<div class="sri" id="sri-${i}" onclick="srClick(${i},${s.file_id},'${escA(s.filename)}')"><div class="sri-main"><div class="sri-title">${esc(s.title)} ${s.year?`(${s.year})`:''}</div><div class="sri-meta"><span>${esc(s.release||'')}</span><span class="stag stag-l">${esc(s.language)}</span><span>${s.downloads} تنزيل</span></div></div><button class="btn btn-g bsm" onclick="event.stopPropagation();dlSub(${s.file_id},'${escA(s.filename)}')"><i class="fas fa-download"></i></button></div>`).join('');});}
+function osSearch(){const q=$('osQ').value.trim(),lang=$('osLang').value;if(!q){al('osAl','<?= addslashes($t["js_076efeb587"] ?? "أدخل اسم الفيلم") ?>','e');return;}$('osSearchBtn').disabled=true;$('osSearchBtn').innerHTML='<span class="sp"></span>';$('osRes').style.display='flex';$('osRes').innerHTML=`<div style="padding:14px;color:var(--t3);text-align:center"><span class="sp"></span> جارٍ البحث…</div>`;al('osAl','','');api({ajax_action:'search_subtitles',query:q,language:lang}).then(d=>{$('osSearchBtn').disabled=false;$('osSearchBtn').innerHTML='<i class="fas fa-search"></i>بحث';if(!d.success){al('osAl',d.error||'<?= addslashes($t["js_40b06b2d41"] ?? "لا توجد نتائج") ?>','e');$('osRes').style.display='none';return;}$('osRes').innerHTML=d.data.map((s,i)=>`<div class="sri" id="sri-${i}" onclick="srClick(${i},${s.file_id},'${escA(s.filename)}')"><div class="sri-main"><div class="sri-title">${esc(s.title)} ${s.year?`(${s.year})`:''}</div><div class="sri-meta"><span>${esc(s.release||'')}</span><span class="stag stag-l">${esc(s.language)}</span><span>${s.downloads} تنزيل</span></div></div><button class="btn btn-g bsm" onclick="event.stopPropagation();dlSub(${s.file_id},'${escA(s.filename)}')"><i class="fas fa-download"></i></button></div>`).join('');});}
 function srClick(i,fid,fname){document.querySelectorAll('.sri').forEach(s=>s.classList.remove('sel'));$('sri-'+i)&&$('sri-'+i).classList.add('sel');dlSub(fid,fname);}
-function dlSub(fid,fname){al('osAl','<span class="sp"></span> جارٍ تنزيل الترجمة…','i');api({ajax_action:'download_subtitle',file_id:fid}).then(d=>{if(!d.success){al('osAl',d.error||'خطأ','e');return;}VID.subFile=d.filename;VID.subUrl=d.url;VID.subVttUrl=d.vtt_url||d.url;$('selSubChip').style.display='flex';$('selSubName').textContent=fname;al('osAl','✅ تم تنزيل الترجمة — باقي '+d.remaining+' تنزيل اليوم','s');});}
+function dlSub(fid,fname){al('osAl','<span class="sp"></span> جارٍ تنزيل الترجمة…','i');api({ajax_action:'download_subtitle',file_id:fid}).then(d=>{if(!d.success){al('osAl',d.error||'<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>','e');return;}VID.subFile=d.filename;VID.subUrl=d.url;VID.subVttUrl=d.vtt_url||d.url;$('selSubChip').style.display='flex';$('selSubName').textContent=fname;al('osAl','✅ تم تنزيل الترجمة — باقي '+d.remaining+' تنزيل اليوم','s');});}
 function clearSub(){VID.subFile='';VID.subUrl='';VID.subVttUrl='';$('selSubChip').style.display='none';}
 
 function vidSave(){
@@ -2249,11 +2249,11 @@ function vidSave(){
     const cid=$('vChanCat').value;
     const targetId=$('vTargetSeries').value; 
     
-    if(targetId == "0" && !cid){ al('v3alert','يُرجى إختيار أي قسم ليتأسس العمل فيه.','e');return;}
-    if(!name && targetId == "0"){ al('v3alert','ما هو أسم فيلمك؟ أدخله بوضوح.','e');return;}
-    if(!name && targetId > "0"){ $('vChanName').value = 'عنصر / حلقة تابعه للمسلسل المختار'; }
+    if(targetId == "0" && !cid){ al('v3alert','<?= addslashes($t["js_e5222fd308"] ?? "يُرجى إختيار أي قسم ليتأسس العمل فيه.") ?>','e');return;}
+    if(!name && targetId == "0"){ al('v3alert','<?= addslashes($t["js_d7d9ba7c6c"] ?? "ما هو أسم فيلمك؟ أدخله بوضوح.") ?>','e');return;}
+    if(!name && targetId > "0"){ $('vChanName').value = '<?= addslashes($t["js_b5461fe720"] ?? "عنصر / حلقة تابعه للمسلسل المختار") ?>'; }
 
-    if(!VID.url){al('v3alert','ألم ترفع أي فيديو إلى الان! عُد لليمين للخطوات.','e');return;}
+    if(!VID.url){al('v3alert','<?= addslashes($t["js_9da9f74dd9"] ?? "ألم ترفع أي فيديو إلى الان! عُد لليمين للخطوات.") ?>','e');return;}
     const btn=document.querySelector('#vp3 .btn-s');
     if(btn){btn.disabled=true;btn.innerHTML='<span class="sp"></span> أرقام القاعدة تقيّد إعداداتك حالياً...';}
     
@@ -2261,7 +2261,7 @@ function vidSave(){
         al('v3alert','<span class="sp"></span> المبرمج يدمج سطورك لملفك، انتظر للحظة…','i');
         api({ajax_action:'merge_subtitle',video_file:VID.filename,subtitle_file:VID.subFile}).then(d=>{
             if(!d.success){
-                al('v3alert',d.error||'خطأ بملف الترجمة','e');
+                al('v3alert',d.error||'<?= addslashes($t["js_69d6ebf261"] ?? "خطأ بملف الترجمة") ?>','e');
                 if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-check"></i>حاول إصلاحه وانقره';} return;
             }
             api({
@@ -2273,9 +2273,9 @@ function vidSave(){
                 if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-check"></i> حفظ جديد لمكتتبك';}
                 if(d2.success){
                     $('vidResult').style.display='block';
-                    $('vidResultInfo').innerHTML= (targetId=="0") ? 'الفيلم الان حر طليق بعمل جديد وخاص.' : 'طاعة المطور اكتملت واصطُف بجوار بقية اخوانه للمسلسل المحدد!';
+                    $('vidResultInfo').innerHTML= (targetId=="0") ? '<?= addslashes($t["js_bd0f2f8d6d"] ?? "الفيلم الان حر طليق بعمل جديد وخاص.") ?>' : '<?= addslashes($t["js_a7ee89cb59"] ?? "طاعة المطور اكتملت واصطُف بجوار بقية اخوانه للمسلسل المحدد!") ?>';
                     al('v3alert','','');
-                }else al('v3alert',d2.error||'انقطعت شاشتك بالقواعد المبرمجة','e');
+                }else al('v3alert',d2.error||'<?= addslashes($t["js_989816be13"] ?? "انقطعت شاشتك بالقواعد المبرمجة") ?>','e');
             });
         });
     }else{
@@ -2287,15 +2287,15 @@ function vidSave(){
             if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-check"></i> تسجيل ملفه وإرسائه.';}
             if(d.success){
                 $('vidResult').style.display='block';
-                $('vidResultInfo').innerHTML= (targetId=="0") ? 'سيبدأ الجمهور رؤية فيلمك، شاهده بادارة شاشتي.' : 'أضيفت الحلقة في شاشتك بنجاح لتشكيلات مسلسلك المطلوب.';
+                $('vidResultInfo').innerHTML= (targetId=="0") ? '<?= addslashes($t["js_7276bfa16b"] ?? "سيبدأ الجمهور رؤية فيلمك، شاهده بادارة شاشتي.") ?>' : '<?= addslashes($t["js_b734a3b6ac"] ?? "أضيفت الحلقة في شاشتك بنجاح لتشكيلات مسلسلك المطلوب.") ?>';
                 al('v3alert','','');
-            }else al('v3alert',d.error||'حدث امر خارجي بمنظومات الخوادم','e');
+            }else al('v3alert',d.error||'<?= addslashes($t["js_5cdcc0fee3"] ?? "حدث امر خارجي بمنظومات الخوادم") ?>','e');
         });
     }
 }
 
 // ══ SERIES POSTER UPLOAD ══
-function srPosterUpload(inp,urlInputId,thumbId,statusId){const f=inp.files[0];if(!f)return;const statusEl=$(statusId),thumbEl=$(thumbId);statusEl.innerHTML='<span class="sp"></span> <span style="color:var(--t2)">جارٍ رفع الصورة…</span>';const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_series_poster');fd.append('poster',f);const xhr=new XMLHttpRequest();xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);statusEl.innerHTML=`<span class="sp"></span> <span style="color:var(--gold)">${p}%</span>`;}};xhr.onload=()=>{try{const d=JSON.parse(xhr.responseText);if(d.success){$(urlInputId).value=d.url;statusEl.innerHTML=`<span style="color:#00D084"><i class="fas fa-check-circle"></i> تم رفع الصورة بنجاح — ${fmtSz(d.size)}</span>`;thumbEl.style.display='block';thumbEl.querySelector('img').src=d.url;thumbEl.querySelector('img').style.borderColor='#00D084';}else statusEl.innerHTML=`<span style="color:#ff6b6b"><i class="fas fa-exclamation-circle"></i> ${d.error||'خطأ في الرفع'}</span>`;}catch(e){statusEl.innerHTML=`<span style="color:#ff6b6b"><i class="fas fa-exclamation-circle"></i> خطأ في الاستجابة</span>`;}inp.value='';};xhr.onerror=()=>{statusEl.innerHTML=`<span style="color:#ff6b6b"><i class="fas fa-exclamation-circle"></i> انقطع الاتصال</span>`;};xhr.open('POST',location.href);xhr.send(fd);}
+function srPosterUpload(inp,urlInputId,thumbId,statusId){const f=inp.files[0];if(!f)return;const statusEl=$(statusId),thumbEl=$(thumbId);statusEl.innerHTML='<span class="sp"></span> <span style="color:var(--t2)">جارٍ رفع الصورة…</span>';const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_series_poster');fd.append('poster',f);const xhr=new XMLHttpRequest();xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);statusEl.innerHTML=`<span class="sp"></span> <span style="color:var(--gold)">${p}%</span>`;}};xhr.onload=()=>{try{const d=JSON.parse(xhr.responseText);if(d.success){$(urlInputId).value=d.url;statusEl.innerHTML=`<span style="color:#00D084"><i class="fas fa-check-circle"></i> تم رفع الصورة بنجاح — ${fmtSz(d.size)}</span>`;thumbEl.style.display='block';thumbEl.querySelector('img').src=d.url;thumbEl.querySelector('img').style.borderColor='#00D084';}else statusEl.innerHTML=`<span style="color:#ff6b6b"><i class="fas fa-exclamation-circle"></i> ${d.error||'<?= addslashes($t["js_5f7fcd9aa4"] ?? "خطأ في الرفع") ?>'}</span>`;}catch(e){statusEl.innerHTML=`<span style="color:#ff6b6b"><i class="fas fa-exclamation-circle"></i> خطأ في الاستجابة</span>`;}inp.value='';};xhr.onerror=()=>{statusEl.innerHTML=`<span style="color:#ff6b6b"><i class="fas fa-exclamation-circle"></i> انقطع الاتصال</span>`;};xhr.open('POST',location.href);xhr.send(fd);}
 function srPosterPreview(thumbId,url){const thumbEl=$(thumbId);if(!url||!url.startsWith('http')){thumbEl.style.display='none';return;}thumbEl.style.display='block';const img=thumbEl.querySelector('img');img.src=url;img.onerror=()=>{thumbEl.style.display='none';};}
 
 // ══ VIDEO MANAGE (With isolated moves directly interacting Shashety vs Public Videos without transferring dir variables logic directly mapping physical files internally easily managed visually by CSS filtering.)
@@ -2329,7 +2329,7 @@ function vmRender(vids){
     e.style.display='none';g.style.display='grid';
     
     // المسميات بالالوان تريح النفسية وتفرق المجلدات بسهولة للتحكم المستقر.
-    const typeLabels = {uploaded:'تم استخراجة للعام (حراً طليقا)', merged:'خاضع لملف الترجمة المستقل', series:'الآن يسكن متجذر لشاشتي (حلقة ومسلسلات).'};
+    const typeLabels = {uploaded:'<?= addslashes($t["js_b743761d13"] ?? "تم استخراجة للعام (حراً طليقا)") ?>', merged:'<?= addslashes($t["js_657efc48f8"] ?? "خاضع لملف الترجمة المستقل") ?>', series:'<?= addslashes($t["js_69af90523e"] ?? "الآن يسكن متجذر لشاشتي (حلقة ومسلسلات).") ?>'};
     const typeColors = {uploaded:'rgba(76,201,240,.9)', merged:'rgba(0,208,132,.9)', series:'rgba(245,166,35,.9)'};
     
     g.innerHTML=vids.map(v=>`<div class="vmc" id="vmc-${esc(v.filename)}">
@@ -2343,11 +2343,11 @@ function vmRender(vids){
             <div class="vmmeta"><span><i class="fas fa-hdd"></i> ${v.size_mb} MB</span><span>${esc(v.date)}</span></div>
         </div>
         <div class="vmacts">
-            <button class="vmb pl" onclick='testChannel("${escA(v.url)}","${escA(v.filename)}")' title="إلعب مقطعاً مرئياً من داخل هذا الفيديو الان!"><i class="fas fa-play"></i></button>
-            <button class="vmb sub" onclick="vmTriggerSub('${escA(v.filename)}','${v.type}')" title="أوّل ما تلحق بهذا المسار ملفات ال vtt الخاص بك سينظر إليها اللاعب باختيار اللمس!"><i class="fas fa-closed-captioning"></i></button>
-            <button class="vmb mv" onclick="vmOpenMove('${escA(v.filename)}','${v.type}')" title="تحول جسدي داخلي للـ Filesystem الخاص بنا بالاعماق للملف للقفز للمسلسل أو خارج المجمعات الكتلية.."><i class="fas fa-exchange-alt"></i></button>
-            <button class="vmb sv" onclick="vmOpenSave('${escA(v.filename)}','${v.type}')" title="طِور المسار الموثق وإرمه الى داخل مسلسلك المراد !"><i class="fas fa-save"></i></button>
-            <button class="vmb dl" onclick="vmDel('${escA(v.filename)}','${v.type}')" title="الإتلاف الكُلي المروع من الجُذر للقرص الصلب السرفر خاصتك!"><i class="fas fa-trash-alt"></i></button>
+            <button class="vmb pl" onclick='testChannel("${escA(v.url)}","${escA(v.filename)}")' title="<?= addslashes($t["js_c00aea510d"] ?? "إلعب مقطعاً مرئياً من داخل هذا الفيديو الان!") ?>"><i class="fas fa-play"></i></button>
+            <button class="vmb sub" onclick="vmTriggerSub('${escA(v.filename)}','${v.type}')" title="<?= addslashes($t["js_3ff49b9abb"] ?? "أوّل ما تلحق بهذا المسار ملفات ال vtt الخاص بك سينظر إليها اللاعب باختيار اللمس!") ?>"><i class="fas fa-closed-captioning"></i></button>
+            <button class="vmb mv" onclick="vmOpenMove('${escA(v.filename)}','${v.type}')" title="<?= addslashes($t["js_789fe5b483"] ?? "تحول جسدي داخلي للـ Filesystem الخاص بنا بالاعماق للملف للقفز للمسلسل أو خارج المجمعات الكتلية..") ?>"><i class="fas fa-exchange-alt"></i></button>
+            <button class="vmb sv" onclick="vmOpenSave('${escA(v.filename)}','${v.type}')" title="<?= addslashes($t["js_ac3b66bfc2"] ?? "طِور المسار الموثق وإرمه الى داخل مسلسلك المراد !") ?>"><i class="fas fa-save"></i></button>
+            <button class="vmb dl" onclick="vmDel('${escA(v.filename)}','${v.type}')" title="<?= addslashes($t["js_216c686f6f"] ?? "الإتلاف الكُلي المروع من الجُذر للقرص الصلب السرفر خاصتك!") ?>"><i class="fas fa-trash-alt"></i></button>
         </div>
     </div>`).join('');
 }
@@ -2356,11 +2356,11 @@ function vmOpenMove(fn, type){
     _vmMoveCtx = {fn, type};
     $('vmMoveFile').textContent = 'هندسة نقل جذر هذا الملف ببراعة السرفرات: ' + fn;
     
-    let folderOpts = '<optgroup label="نقل لعراء السيرفر الرئيسي وخروجه للـ Public Videos File!">';
+    let folderOpts = '<optgroup label="<?= addslashes($t["js_7cd15c9c4a"] ?? "نقل لعراء السيرفر الرئيسي وخروجه للـ Public Videos File!") ?>">';
     folderOpts += '<option value="videos">🌐 استخراج وتعريه الملف للرفع العام (أقضي أرسالاتة ومسيراته لشبكة خارج ال Series.)</option>';
     folderOpts += '</optgroup>';
     
-    folderOpts += '<optgroup label="إدخاله وحصاره داخل مجمع لجدول مسلسلات شاشتي.">';
+    folderOpts += '<optgroup label="<?= addslashes($t["js_4df6ab21cf"] ?? "إدخاله وحصاره داخل مجمع لجدول مسلسلات شاشتي.") ?>">';
     if (typeof _allFoldersGlobal !== 'undefined') {
         _allFoldersGlobal.forEach(folder => {
             folderOpts += `<option value="${folder.id}">🎬 دمجة وإيواه فوراً كحلقة مستجدة لمجمع ومجلد : ${esc(folder.name)}</option>`;
@@ -2383,7 +2383,7 @@ function vmDoMove(){
             al('vmMoveAlert', '✅ ' + d.message, 's');
             setTimeout(() => { CM('vmMoveM'); vmLoad(); }, 1600);
         } else {
-            al('vmMoveAlert', d.error || 'عقدة مستعصية جارية حدثت ولم يتحول.', 'e');
+            al('vmMoveAlert', d.error || '<?= addslashes($t["js_51147d5d91"] ?? "عقدة مستعصية جارية حدثت ولم يتحول.") ?>', 'e');
         }
     });
 }
@@ -2405,7 +2405,7 @@ function vmDoSave(){
           subUrl = $('vmSaveSubUrl').value,
           targetId = $('vmSaveTargetSeries').value; 
 
-    if(targetId == "0" && (!title || !cid)) { al('vmSaveAlert','الترسانة العصبية المجهزة بالمكتب تمنع حفظها الا عند جردك لإمضاء الفصول للفيلم او الحلقه للنوع الجديد.','e'); return;}
+    if(targetId == "0" && (!title || !cid)) { al('vmSaveAlert','<?= addslashes($t["js_d70f8827e4"] ?? "الترسانة العصبية المجهزة بالمكتب تمنع حفظها الا عند جردك لإمضاء الفصول للفيلم او الحلقه للنوع الجديد.") ?>','e'); return;}
     
     al('vmSaveAlert', '<span class="sp"></span> تدريجات الاضافات تعمل لحفر الداتا بالأساس...', 'i');
     
@@ -2413,7 +2413,7 @@ function vmDoSave(){
         ajax_action:'save_video_manual', 
         filename: _vmCtx.fn, 
         video_type: _vmCtx.type, 
-        title: title || 'انشاء مستحدث من إدارة المحرر.', 
+        title: title || '<?= addslashes($t["js_5a384a24bb"] ?? "انشاء مستحدث من إدارة المحرر.") ?>', 
         category_id: cid, 
         subtitle_url: subUrl,
         target_series_id: targetId
@@ -2422,11 +2422,11 @@ function vmDoSave(){
             CM('vmSaveM');
             alert(targetId == "0" ? "تشريع النظام للمجلد المُنشئ تُم بشكل قوي، أُحتسب هذا المسار!" : "تم رعاية المُختار لمربوطه الساسي وأرسُل لبر المجمع الآلي المُسبق الحفظ شاشتي!");
             setTimeout(()=>{ S('series'); loadSeries(); }, 500);
-        }else al('vmSaveAlert', d.error||'تعذر وصول السرديات للمكتب القُدير', 'e');
+        }else al('vmSaveAlert', d.error||'<?= addslashes($t["js_6dcbd6e069"] ?? "تعذر وصول السرديات للمكتب القُدير") ?>', 'e');
     });
 }
 
-function vmDel(fn,type){if(!confirm('خطر الازالة: سوف تُنسف الذكريات كاملة عن القرص السحب الثابثة الخاصة بهذا المسير ('+fn+') ؟'))return;api({ajax_action:'delete_video',filename:fn,type}).then(d=>{if(d.success){const c=document.getElementById('vmc-'+fn);if(c){c.style.opacity='0';c.style.transition='all .3s';setTimeout(()=>c.remove(),300);}_vmAll=_vmAll.filter(v=>v.filename!==fn);$('vmCnt').textContent=_vmAll.length+' جِرد مقطعيّ وحيد الان متوفّر بالسيرفر.';}else alert('❌ '+(d.error||'استغاثة لملكية السرفر غير خاضعة.'));});}
+function vmDel(fn,type){if(!confirm('<?= addslashes($t["js_df84acd002"] ?? "خطر الازالة: سوف تُنسف الذكريات كاملة عن القرص السحب الثابثة الخاصة بهذا المسير (") ?>'+fn+'<?= addslashes($t["js_7569194571"] ?? ") ؟") ?>'))return;api({ajax_action:'delete_video',filename:fn,type}).then(d=>{if(d.success){const c=document.getElementById('vmc-'+fn);if(c){c.style.opacity='0';c.style.transition='all .3s';setTimeout(()=>c.remove(),300);}_vmAll=_vmAll.filter(v=>v.filename!==fn);$('vmCnt').textContent=_vmAll.length+' جِرد مقطعيّ وحيد الان متوفّر بالسيرفر.';}else alert('❌ '+(d.error||'استغاثة لملكية السرفر غير خاضعة.'));});}
 
 // ═══════════════════════════════════════════════════════════════
 // نظام البحث المتعدد المصادر (TMDB + AniList + OMDb) v3
@@ -2497,7 +2497,7 @@ async function searchAniList_ms(ctx,q){
                 p=i.coverImage?i.coverImage.medium:'',pf=i.coverImage?i.coverImage.large:'',
                 ep=i.episodes?i.episodes+' حلقة':'',
                 sc=i.averageScore?'<span style="color:var(--gold);font-size:.65rem"><i class="fas fa-star"></i> '+(i.averageScore/10).toFixed(1)+'</span>':'',
-                fm={TV:'مسلسل',MOVIE:'فيلم',OVA:'OVA',ONA:'ONA',SPECIAL:'خاص'},
+                fm={TV:'<?= addslashes($t["js_853aaed10b"] ?? "مسلسل") ?>',MOVIE:'<?= addslashes($t["js_4faa00d1d2"] ?? "فيلم") ?>',OVA:'OVA',ONA:'ONA',SPECIAL:'<?= addslashes($t["js_f4618619ad"] ?? "خاص") ?>'},
                 fl=fm[i.format]||i.format||'',
                 ds=(i.description||'').replace(/<[^>]+>/g,'').substring(0,200);
             return '<div class="media-result-item" onclick="mediaPick(\''+ctx+'\',\''+escA(t)+'\',\''+escA(pf)+'\',\''+escA(ds)+'\')">'+
@@ -2516,7 +2516,7 @@ async function searchOMDb_ms(ctx,q){
         if(data.Response==='False'||!data.Search||!data.Search.length){r.innerHTML='<div class="media-result-item"><div class="media-result-info" style="color:var(--t3)"><i class="fas fa-search"></i> لا نتائج — جرب بالإنجليزية</div></div>';return;}
         r.innerHTML=data.Search.slice(0,8).map(function(i){
             var t=i.Title||'',y=i.Year||'',p=(i.Poster&&i.Poster!=='N/A')?i.Poster:'',id=i.imdbID||'',
-                tm={movie:'فيلم',series:'مسلسل',episode:'حلقة',game:'لعبة'},tl=tm[i.Type]||i.Type||'';
+                tm={movie:'<?= addslashes($t["js_4faa00d1d2"] ?? "فيلم") ?>',series:'<?= addslashes($t["js_853aaed10b"] ?? "مسلسل") ?>',episode:'<?= addslashes($t["js_9ea8c667e6"] ?? "حلقة") ?>',game:'<?= addslashes($t["js_b2b7ea48ae"] ?? "لعبة") ?>'},tl=tm[i.Type]||i.Type||'';
             return '<div class="media-result-item" onclick="omdbDetail_ms(\''+ctx+'\',\''+escA(id)+'\',\''+escA(t)+'\',\''+escA(p)+'\')">'+
                 (p?'<img src="'+esc(p)+'" onerror="this.style.opacity=\'.2\'">':'<div style="width:36px;height:50px;background:var(--s3);border-radius:4px;display:flex;align-items:center;justify-content:center"><i class="fas fa-database" style="color:var(--t3)"></i></div>')+
                 '<div class="media-result-info"><div class="media-result-title">'+esc(t)+'</div><div class="media-result-meta">'+(y||'\u2014')+' <span class="bdg" style="background:rgba(245,166,35,.1);color:var(--gold);border:1px solid rgba(245,166,35,.2);font-size:.6rem">'+tl+'</span> '+(id?'<span style="font-size:.62rem;color:var(--t3)">'+id+'</span> ':'')+'<span class="source-badge omdb">OMDb</span></div></div></div>';
@@ -2565,13 +2565,13 @@ const ALL_SECTION_DEFS = [
     {key:'channels',     name:'القنوات',           icon:'fas fa-tv'},
     {key:'m3u-import',   name:'استيراد M3U',       icon:'fas fa-file-import'},
     {key:'xtream',       name:'حساب Xtream',       icon:'fas fa-satellite-dish'},
-    {key:'series',       name:'شاشتي',             icon:'fas fa-film'},
+    {key:'series',       name:'<?= addslashes($t["js_79ee8ef537"] ?? "شاشتي") ?>',             icon:'fas fa-film'},
     {key:'vupload',      name:'رفع الأفلام',       icon:'fas fa-cloud-upload-alt'},
     {key:'vmanage',      name:'إدارة الفيديوهات',  icon:'fas fa-photo-video'},
     {key:'api-settings', name:'إعدادات API',       icon:'fas fa-plug'},
     {key:'site-settings',name:'إعدادات الموقع',    icon:'fas fa-cog'},
     {key:'change-password',name:'كلمة المرور',     icon:'fas fa-key'},
-    {key:'system-tools', name:'صيانة النظام',      icon:'fas fa-tools'},
+    {key:'system-tools', name:'<?= addslashes($t["js_711bfa06e0"] ?? "صيانة النظام") ?>',      icon:'fas fa-tools'},
     {key:'backup',       name:'النسخ الاحتياطي',   icon:'fas fa-database'},
 ];
 
@@ -2625,7 +2625,7 @@ function loadUsers() {
     $('usrLoading').style.display = 'block';
     api({ajax_action:'get_admin_users'}).then(function(d) {
         $('usrLoading').style.display = 'none';
-        if(!d.success) { al('usrGrid', d.error || 'خطأ', 'e'); return; }
+        if(!d.success) { al('usrGrid', d.error || '<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>', 'e'); return; }
         _usrAll = d.data || [];
         usrRender(_usrAll);
     });
@@ -2651,7 +2651,7 @@ function usrRender(users) {
         var rl = ROLE_LABELS[u.role] || u.role;
         var initial = (u.display_name || u.username || '?').charAt(0).toUpperCase();
         var inactive = u.is_active == 0;
-        var lastLogin = u.last_login ? u.last_login.substring(0,16) : 'لم يدخل بعد';
+        var lastLogin = u.last_login ? u.last_login.substring(0,16) : '<?= addslashes($t["js_da94c7fa18"] ?? "لم يدخل بعد") ?>';
         var sections = [];
         try { sections = JSON.parse(u.allowed_sections || '[]'); } catch(e) {}
         var secText = '';
@@ -2693,8 +2693,8 @@ function addUser() {
     var role = $('auRole').value;
     var sections = (role === 'custom') ? JSON.stringify(getSelectedPerms('auPermsGrid')) : '[]';
 
-    if(!username) { al('auAlert','أدخل اسم المستخدم','e'); return; }
-    if(!password || password.length < 4) { al('auAlert','كلمة المرور يجب أن تكون 4 أحرف على الأقل','e'); return; }
+    if(!username) { al('auAlert','<?= addslashes($t["js_d6528df322"] ?? "أدخل اسم المستخدم") ?>','e'); return; }
+    if(!password || password.length < 4) { al('auAlert','<?= addslashes($t["js_718960dc2d"] ?? "كلمة المرور يجب أن تكون 4 أحرف على الأقل") ?>','e'); return; }
 
     al('auAlert','<span class="sp"></span> جارٍ الإنشاء...','i');
     api({ajax_action:'add_admin_user', username:username, password:password, display_name:display, role:role, allowed_sections:sections}).then(function(d) {
@@ -2708,7 +2708,7 @@ function addUser() {
             al('auAlert','','');
             loadUsers();
         } else {
-            al('auAlert', d.error || 'خطأ', 'e');
+            al('auAlert', d.error || '<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>', 'e');
         }
     });
 }
@@ -2759,7 +2759,7 @@ function editUser() {
             CM('editUserM');
             loadUsers();
         } else {
-            al('euAlert', d.error || 'خطأ', 'e');
+            al('euAlert', d.error || '<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>', 'e');
         }
     });
 }
@@ -2769,7 +2769,7 @@ function deleteUser(id, name) {
     if(!confirm('حذف المستخدم "' + name + '" نهائياً؟')) return;
     api({ajax_action:'delete_admin_user', id:id}).then(function(d) {
         if(d.success) loadUsers();
-        else alert(d.error || 'خطأ');
+        else alert(d.error || '<?= addslashes($t["js_dc5b8b3a79"] ?? "خطأ") ?>');
     });
 }
 
@@ -2806,7 +2806,7 @@ function deleteUser(id, name) {
     var _origS = window.S;
     window.S = function(id) {
         if(allowed.indexOf(id) === -1) {
-            alert('ليس لديك صلاحية للوصول لهذا القسم');
+            alert('<?= addslashes($t["js_867e764dbd"] ?? "ليس لديك صلاحية للوصول لهذا القسم") ?>');
             return;
         }
         _origS(id);
@@ -2844,7 +2844,7 @@ document.addEventListener('click', function() {
 // ══════════════════════════════════════════════════════════════
 
 const THEME_PRESETS = {
-    default: { name: 'الافتراضي', css: '' },
+    default: { name: '<?= addslashes($t["js_32cb63ec84"] ?? "الافتراضي") ?>', css: '' },
     ultrachromic: {
         name: 'Ultrachromic',
         css: `:root{--red:#b847ff;--redg:rgba(184,71,255,0.35);--gold:#6200ea;--s0:#0d0221;--s1:#100828;--s2:#180d35;--s3:#1f1140;--s4:#28174d;--br:rgba(255,255,255,.09);--brh:rgba(255,255,255,.2);--t1:#f0e8ff;--t2:#b89fd8;--t3:#6b5a8a;--r1:12px}
@@ -4322,7 +4322,7 @@ function _saveThemeToDB(themeKey, fullCss, btnEl) {
             if (d.success) {
                 _adminToast('\u2705 تم حفظ الثيم بنجاح — سيظهر في index.php تلقائياً', 's');
             } else {
-                _adminToast('\u274C خطأ في الحفظ: ' + (d.error || 'غير معروف'), 'e');
+                _adminToast('\u274C خطأ في الحفظ: ' + (d.error || '<?= addslashes($t["js_6b5e6d57ba"] ?? "غير معروف") ?>'), 'e');
             }
         })
         .catch(() => _adminToast('\u274C فشل الاتصال بالخادم', 'e'))
@@ -4355,13 +4355,13 @@ function applyThemePreset(themeKey) {
                 if (st) { st.innerHTML = '<span style="color:#00D084"><i class="fas fa-check-circle"></i> ✅ تم حفظ ثيم ' + (preset.name || themeKey) + ' في قاعدة البيانات — سيظهر في index.php تلقائياً</span>'; }
                 _adminToast('✅ تم حفظ ثيم ' + (preset.name || themeKey) + ' وتطبيقه على index.php', 's');
             } else {
-                if (st) { st.innerHTML = '<span style="color:#ff6b6b"><i class="fas fa-exclamation-circle"></i> خطأ في الحفظ: ' + (d.error || 'غير معروف') + '</span>'; }
-                _adminToast('❌ خطأ في الحفظ: ' + (d.error || 'غير معروف'), 'e');
+                if (st) { st.innerHTML = '<span style="color:#ff6b6b"><i class="fas fa-exclamation-circle"></i> خطأ في الحفظ: ' + (d.error || '<?= addslashes($t["js_6b5e6d57ba"] ?? "غير معروف") ?>') + '</span>'; }
+                _adminToast('❌ خطأ في الحفظ: ' + (d.error || '<?= addslashes($t["js_6b5e6d57ba"] ?? "غير معروف") ?>'), 'e');
             }
         })
         .catch(function() {
             if (st) { st.innerHTML = '<span style="color:#ff6b6b"><i class="fas fa-exclamation-circle"></i> فشل الاتصال بالخادم</span>'; }
-            _adminToast('❌ فشل الاتصال بالخادم', 'e');
+            _adminToast('<?= addslashes($t["js_89a947ff9a"] ?? "❌ فشل الاتصال بالخادم") ?>', 'e');
         });
 }
 

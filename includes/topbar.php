@@ -8,7 +8,7 @@
         <div class="sbrand-name" style="font-family: 'Inter', 'Tajawal', sans-serif; font-size: 1.1rem; font-weight: 800; letter-spacing: 1.5px; color: var(--t1); line-height: 1.1;">DASHBOARD</div>
         <div style="font-size: 0.65rem; color: #E50914; font-weight: 800; letter-spacing: 2px; margin-top: 3px;">SH PRO V2.0</div>
     </div>
-    <button class="desktop-toggle-btn" onclick="toggleDesktopSidebar()" title="طي / توسيع القائمة">
+    <button class="desktop-toggle-btn" onclick="toggleDesktopSidebar()" title="<?= htmlspecialchars($t["tip_collapse"] ?? "طي / توسيع القائمة") ?>">
       <i data-lucide="chevron-right" id="dtoggle-icon"></i>
     </button>
   </div>
@@ -51,17 +51,17 @@
       <span></span><span></span><span></span>
     </div>
   </button>
-  <span class="tbtitle" id="tbTitle">لوحة التحكم</span>
+  <span class="tbtitle" id="tbTitle"><?= $t["dashboard_word"] ?? "لوحة التحكم" ?></span>
   <div class="tbr">
 
     <!-- Music Mini Player -->
-    <div class="music-p-mini" onclick="toggleAdminMusic()" title="إيقاف / تشغيل موسيقى الخلفية">
+    <div class="music-p-mini" onclick="toggleAdminMusic()" title="<?= htmlspecialchars($t["tip_music"] ?? "إيقاف / تشغيل موسيقى الخلفية") ?>">
         <i class="fas fa-music" style="color:var(--t3); font-size:0.8rem;"></i>
         <div class="m-eq paused" id="m_eq"><span></span><span></span><span></span></div>
     </div>
 
     <!-- Day/Night Mode Toggle (إضافة) -->
-    <button class="mode-toggle" id="modeToggle" onclick="toggleDayNight()" title="تبديل الوضع الليلي / النهاري" aria-label="تبديل الوضع">
+    <button class="mode-toggle" id="modeToggle" onclick="toggleDayNight()" title="<?= htmlspecialchars($t["tip_darkmode"] ?? "تبديل الوضع الليلي / النهاري") ?>" aria-label="تبديل الوضع">
       <i class="fas fa-moon" id="modeIcon"></i>
     </button>
 
@@ -72,7 +72,7 @@
       </button>
       <div class="lang-drop" id="langDrop">
         <a class="lang-opt" href="?lang=ar">
-            <span class="lang-flag">🇸🇦</span><span>العربية</span>
+            <span class="lang-flag">🇸🇦</span><span><?= $t["lang_arabic"] ?? "العربية" ?></span>
         </a>
         <a class="lang-opt" href="?lang=en">
             <span class="lang-flag">🇬🇧</span><span>English</span>

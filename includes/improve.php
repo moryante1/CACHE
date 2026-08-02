@@ -8,7 +8,7 @@
   img.shs-lazy.shs-loaded{opacity:1;}
   @media (prefers-reduced-motion: reduce){#shsToTop,#shsProgress,img.shs-lazy{transition:none !important;}}
 </style>
-<button id="shsToTop" aria-label="العودة للأعلى" title="العودة للأعلى">↑</button>
+<button id="shsToTop" aria-label="العودة للأعلى" title="<?= htmlspecialchars($t["back_to_top"] ?? "العودة للأعلى") ?>">↑</button>
 <div id="shsProgress"></div>
 <script id="shashety-improve-js">
 (function(){'use strict';

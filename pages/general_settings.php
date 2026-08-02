@@ -52,7 +52,7 @@
         <input type="text" class="fi" id="gs_site_name" data-key="site_name" data-type="text" placeholder="Shashety"></div>
       <!-- وصف الموقع: meta description لمحركات البحث (SEO) -->
       <div class="fg" style="margin:0"><label class="fl"><?= $t["site_description_seo"] ?? "وصف الموقع (SEO)" ?></label>
-        <input type="text" class="fi" id="gs_site_description" data-key="site_description" data-type="text" placeholder="نظام IPTV احترافي"></div>
+        <input type="text" class="fi" id="gs_site_description" data-key="site_description" data-type="text" placeholder="<?= htmlspecialchars($t["gs_pro_iptv"] ?? "نظام IPTV احترافي") ?>"></div>
       <!-- رابط شعار الموقع -->
       <div class="fg" style="margin:0"><label class="fl"><?= $t["site_logo_url"] ?? "رابط الشعار (Logo URL)" ?></label>
         <input type="text" class="fi" id="gs_site_logo" data-key="site_logo" data-type="text" placeholder="https://example.com/logo.png"></div>
@@ -105,7 +105,7 @@
       <!-- تفعيل ظهور <?= $t["announcement_bar"] ?? "الشريط الإعلاني" ?> أعلى الموقع -->
       <label class="fc-card" for="gs_announcement_enabled" style="cursor:pointer">
         <div class="fc-ic" style="background:rgba(245,166,35,.12);color:#F5A623"><i class="fas fa-bullhorn"></i></div>
-        <div class="fc-info"><b>إظهار <?= $t["announcement_bar"] ?? "الشريط الإعلاني" ?></b><small>شريط نصي يظهر أعلى الصفحة الرئيسية لكل الزوار.</small></div>
+        <div class="fc-info"><b><?= $t["gs_show"] ?? "إظهار" ?><?= $t["announcement_bar"] ?? "الشريط الإعلاني" ?></b><small><?= $t["gs_announce_desc"] ?? "شريط نصي يظهر أعلى الصفحة الرئيسية لكل الزوار." ?></small></div>
         <span class="fc-switch"><input type="checkbox" id="gs_announcement_enabled" data-key="announcement_enabled" data-type="bool"><span class="fc-slider"></span></span>
       </label>
       <!-- <?= $t["announcement_text"] ?? "نص الإعلان" ?> الظاهر في الشريط -->
@@ -291,7 +291,7 @@
     <div class="fg" style="margin:0"><label class="fl"><?= $t["font"] ?? "الخط" ?> <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> Tajawal)</span></label>
       <select class="fs" id="f_ui_font" data-key="ui_font" data-type="text"><option value="Tajawal">Tajawal</option><option value="Cairo">Cairo</option><option value="Almarai">Almarai</option><option value="Inter">Inter</option><option value="Roboto">Roboto</option></select></div>
     <!-- ui_font_size — <?= $t["original"] ?? "الأصلي:" ?> 16 -->
-    <div class="fg" style="margin:0"><label class="fl">حجم <?= $t["font"] ?? "الخط" ?> (px) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 16)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_size"] ?? "حجم" ?><?= $t["font"] ?? "الخط" ?> (px) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 16)</span></label>
       <input type="number" class="fi" id="f_ui_font_size" data-key="ui_font_size" data-type="text" placeholder="16"></div>
     <!-- ui_transitions — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_ui_transitions" style="cursor:pointer">
@@ -471,13 +471,13 @@
       <div class="cbody" style="display:flex;flex-direction:column;gap:14px">
 
     <!-- sub_default_language — <?= $t["original"] ?? "الأصلي:" ?> ar -->
-    <div class="fg" style="margin:0"><label class="fl"><?= $t["language"] ?? "اللغة" ?> الافتراضية <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> ar)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["language"] ?? "اللغة" ?><?= $t["gs_default_f"] ?? "الافتراضية" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> ar)</span></label>
       <select class="fs" id="f_sub_default_language" data-key="sub_default_language" data-type="text"><option value="ar">ar</option><option value="en">en</option><option value="tr">tr</option><option value="fr">fr</option></select></div>
     <!-- sub_font_size — <?= $t["original"] ?? "الأصلي:" ?> 18 -->
-    <div class="fg" style="margin:0"><label class="fl">حجم <?= $t["font"] ?? "الخط" ?> (px) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 18)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_size"] ?? "حجم" ?><?= $t["font"] ?? "الخط" ?> (px) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 18)</span></label>
       <input type="number" class="fi" id="f_sub_font_size" data-key="sub_font_size" data-type="text" placeholder="18"></div>
     <!-- sub_font_color — <?= $t["original"] ?? "الأصلي:" ?> #ffffff -->
-    <div class="fg" style="margin:0"><label class="fl">لون <?= $t["font"] ?? "الخط" ?> <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> #ffffff)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_color"] ?? "لون" ?><?= $t["font"] ?? "الخط" ?> <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> #ffffff)</span></label>
       <div style="display:flex;gap:8px;align-items:center">
         <input type="color" id="f_sub_font_color_pick" value="#ffffff" style="width:48px;height:42px;border:1px solid var(--br);border-radius:8px;background:transparent;cursor:pointer" oninput="document.getElementById('f_sub_font_color').value=this.value">
         <input type="text" class="fi" id="f_sub_font_color" data-key="sub_font_color" data-type="text" placeholder="#ffffff" style="flex:1" oninput="try{document.getElementById('f_sub_font_color_pick').value=this.value}catch(e){}">
@@ -489,10 +489,10 @@
         <input type="text" class="fi" id="f_sub_bg_color" data-key="sub_bg_color" data-type="text" placeholder="#000000" style="flex:1" oninput="try{document.getElementById('f_sub_bg_color_pick').value=this.value}catch(e){}">
       </div></div>
     <!-- sub_position — <?= $t["original"] ?? "الأصلي:" ?> bottom -->
-    <div class="fg" style="margin:0"><label class="fl">موضع الترجمة <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> bottom)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_sub_position"] ?? "موضع الترجمة" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> bottom)</span></label>
       <select class="fs" id="f_sub_position" data-key="sub_position" data-type="text"><option value="top">top</option><option value="center">center</option><option value="bottom">bottom</option></select></div>
     <!-- sub_bg_opacity — <?= $t["original"] ?? "الأصلي:" ?> 60 -->
-    <div class="fg" style="margin:0"><label class="fl">شفافية الخلفية (0-100) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 60)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_bg_opacity"] ?? "شفافية الخلفية (0-100)" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 60)</span></label>
       <input type="number" class="fi" id="f_sub_bg_opacity" data-key="sub_bg_opacity" data-type="text" placeholder="60"></div>
           </div>
       <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
@@ -506,7 +506,7 @@
   <div class="gs-acc" data-group="series" style="border:1px solid var(--br);border-radius:var(--r2,12px);margin-bottom:14px;overflow:hidden;background:var(--s1,transparent)">
     <button type="button" class="gs-acc-head" onclick="gsToggleAcc(this)" style="width:100%;display:flex;align-items:center;gap:12px;padding:16px 18px;background:transparent;border:none;cursor:pointer;color:var(--t1);text-align:right">
       <span style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#e040fb22;color:#e040fb;flex-shrink:0"><i class="fas fa-film"></i></span>
-      <span style="flex:1;font-weight:700;font-size:1rem">إعدادات المسلسلات</span>
+      <span style="flex:1;font-weight:700;font-size:1rem"><?= $t["gs_series_settings"] ?? "إعدادات المسلسلات" ?></span>
       <i class="fas fa-chevron-down gs-acc-arrow" style="transition:transform .25s;color:var(--t3)"></i>
     </button>
     <div class="gs-acc-body" style="display:none;padding:0 18px 18px">
@@ -516,26 +516,26 @@
 
     <!-- sr_resume_last_ep — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_sr_resume_last_ep" style="cursor:pointer">
-      <div class="fc-info"><b>التشغيل من آخر حلقة</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_resume_last_ep"] ?? "التشغيل من آخر حلقة" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_sr_resume_last_ep" data-key="sr_resume_last_ep" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- sr_auto_next_ep — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_sr_auto_next_ep" style="cursor:pointer">
-      <div class="fc-info"><b>الانتقال للحلقة التالية تلقائياً</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_auto_next_ep"] ?? "الانتقال للحلقة التالية تلقائياً" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_sr_auto_next_ep" data-key="sr_auto_next_ep" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- sr_skip_intro — <?= $t["original"] ?? "الأصلي:" ?> 0 -->
     <label class="fc-card" for="f_sr_skip_intro" style="cursor:pointer">
-      <div class="fc-info"><b>تخطي المقدمة (Skip Intro)</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
+      <div class="fc-info"><b><?= $t["gs_skip_intro"] ?? "تخطي المقدمة (Skip Intro)" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_sr_skip_intro" data-key="sr_skip_intro" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- sr_skip_outro — <?= $t["original"] ?? "الأصلي:" ?> 0 -->
     <label class="fc-card" for="f_sr_skip_outro" style="cursor:pointer">
-      <div class="fc-info"><b>تخطي الشارة الختامية</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
+      <div class="fc-info"><b><?= $t["gs_skip_outro"] ?? "تخطي الشارة الختامية" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_sr_skip_outro" data-key="sr_skip_outro" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- sr_season_order — <?= $t["original"] ?? "الأصلي:" ?> asc -->
-    <div class="fg" style="margin:0"><label class="fl">ترتيب المواسم <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> asc)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_season_order"] ?? "ترتيب المواسم" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> asc)</span></label>
       <select class="fs" id="f_sr_season_order" data-key="sr_season_order" data-type="text"><option value="asc">asc</option><option value="desc">desc</option></select></div>
           </div>
       <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
@@ -549,7 +549,7 @@
   <div class="gs-acc" data-group="movies" style="border:1px solid var(--br);border-radius:var(--r2,12px);margin-bottom:14px;overflow:hidden;background:var(--s1,transparent)">
     <button type="button" class="gs-acc-head" onclick="gsToggleAcc(this)" style="width:100%;display:flex;align-items:center;gap:12px;padding:16px 18px;background:transparent;border:none;cursor:pointer;color:var(--t1);text-align:right">
       <span style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#ff4d5722;color:#ff4d57;flex-shrink:0"><i class="fas fa-clapperboard"></i></span>
-      <span style="flex:1;font-weight:700;font-size:1rem">إعدادات الأفلام</span>
+      <span style="flex:1;font-weight:700;font-size:1rem"><?= $t["gs_movies_settings"] ?? "إعدادات الأفلام" ?></span>
       <i class="fas fa-chevron-down gs-acc-arrow" style="transition:transform .25s;color:var(--t3)"></i>
     </button>
     <div class="gs-acc-body" style="display:none;padding:0 18px 18px">
@@ -558,32 +558,32 @@
       <div class="cbody" style="display:flex;flex-direction:column;gap:14px">
 
     <!-- mv_per_page — <?= $t["original"] ?? "الأصلي:" ?> 24 -->
-    <div class="fg" style="margin:0"><label class="fl">عدد الأفلام في الصفحة <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 24)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_movies_per_page"] ?? "عدد الأفلام في الصفحة" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 24)</span></label>
       <input type="number" class="fi" id="f_mv_per_page" data-key="mv_per_page" data-type="text" placeholder="24"></div>
     <!-- mv_default_quality — <?= $t["original"] ?? "الأصلي:" ?> auto -->
-    <div class="fg" style="margin:0"><label class="fl">جودة العرض الافتراضية <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> auto)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_default_quality_v"] ?? "جودة العرض الافتراضية" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> auto)</span></label>
       <select class="fs" id="f_mv_default_quality" data-key="mv_default_quality" data-type="text"><option value="auto">auto</option><option value="480">480</option><option value="720">720</option><option value="1080">1080</option></select></div>
     <!-- mv_auto_subtitle — <?= $t["original"] ?? "الأصلي:" ?> 0 -->
     <label class="fc-card" for="f_mv_auto_subtitle" style="cursor:pointer">
-      <div class="fc-info"><b>تشغيل الترجمة تلقائياً</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
+      <div class="fc-info"><b><?= $t["gs_auto_subtitle"] ?? "تشغيل الترجمة تلقائياً" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_mv_auto_subtitle" data-key="mv_auto_subtitle" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- mv_subtitle_language — <?= $t["original"] ?? "الأصلي:" ?> ar -->
-    <div class="fg" style="margin:0"><label class="fl"><?= $t["language"] ?? "اللغة" ?> الافتراضية للترجمة <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> ar)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["language"] ?? "اللغة" ?><?= $t["gs_default_sub_lang"] ?? "الافتراضية للترجمة" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> ar)</span></label>
       <select class="fs" id="f_mv_subtitle_language" data-key="mv_subtitle_language" data-type="text"><option value="ar">ar</option><option value="en">en</option><option value="tr">tr</option><option value="fr">fr</option></select></div>
     <!-- mv_play_trailer — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_mv_play_trailer" style="cursor:pointer">
-      <div class="fc-info"><b>تشغيل التريلر</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_play_trailer"] ?? "تشغيل التريلر" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_mv_play_trailer" data-key="mv_play_trailer" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- mv_show_similar — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_mv_show_similar" style="cursor:pointer">
-      <div class="fc-info"><b>عرض الأفلام المشابهة</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_similar_movies"] ?? "عرض الأفلام المشابهة" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_mv_show_similar" data-key="mv_show_similar" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- mv_resume_watch — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_mv_resume_watch" style="cursor:pointer">
-      <div class="fc-info"><b>استكمال المشاهدة</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_continue_watching"] ?? "استكمال المشاهدة" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_mv_resume_watch" data-key="mv_resume_watch" data-type="bool"><span class="fc-slider"></span></span>
     </label>
           </div>
@@ -598,7 +598,7 @@
   <div class="gs-acc" data-group="channels" style="border:1px solid var(--br);border-radius:var(--r2,12px);margin-bottom:14px;overflow:hidden;background:var(--s1,transparent)">
     <button type="button" class="gs-acc-head" onclick="gsToggleAcc(this)" style="width:100%;display:flex;align-items:center;gap:12px;padding:16px 18px;background:transparent;border:none;cursor:pointer;color:var(--t1);text-align:right">
       <span style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#F5A62322;color:#F5A623;flex-shrink:0"><i class="fas fa-tv"></i></span>
-      <span style="flex:1;font-weight:700;font-size:1rem">إعدادات القنوات</span>
+      <span style="flex:1;font-weight:700;font-size:1rem"><?= $t["gs_channels_settings"] ?? "إعدادات القنوات" ?></span>
       <i class="fas fa-chevron-down gs-acc-arrow" style="transition:transform .25s;color:var(--t3)"></i>
     </button>
     <div class="gs-acc-body" style="display:none;padding:0 18px 18px">
@@ -607,30 +607,30 @@
       <div class="cbody" style="display:flex;flex-direction:column;gap:14px">
 
     <!-- ch_per_page — <?= $t["original"] ?? "الأصلي:" ?> 40 -->
-    <div class="fg" style="margin:0"><label class="fl">عدد القنوات في الصفحة <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 40)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_channels_per_page"] ?? "عدد القنوات في الصفحة" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 40)</span></label>
       <input type="number" class="fi" id="f_ch_per_page" data-key="ch_per_page" data-type="text" placeholder="40"></div>
     <!-- ch_order — <?= $t["original"] ?? "الأصلي:" ?> display_order -->
-    <div class="fg" style="margin:0"><label class="fl">ترتيب القنوات <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> display_order)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_channel_order"] ?? "ترتيب القنوات" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> display_order)</span></label>
       <select class="fs" id="f_ch_order" data-key="ch_order" data-type="text"><option value="display_order">display_order</option><option value="name">name</option><option value="newest">newest</option></select></div>
     <!-- ch_group_order — <?= $t["original"] ?? "الأصلي:" ?> display_order -->
-    <div class="fg" style="margin:0"><label class="fl">ترتيب المجموعات <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> display_order)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_group_order"] ?? "ترتيب المجموعات" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> display_order)</span></label>
       <select class="fs" id="f_ch_group_order" data-key="ch_group_order" data-type="text"><option value="display_order">display_order</option><option value="name">name</option></select></div>
     <!-- ch_hide_offline — <?= $t["original"] ?? "الأصلي:" ?> 0 -->
     <label class="fc-card" for="f_ch_hide_offline" style="cursor:pointer">
-      <div class="fc-info"><b>إخفاء القنوات غير المتصلة</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
+      <div class="fc-info"><b><?= $t["gs_hide_offline"] ?? "إخفاء القنوات غير المتصلة" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_ch_hide_offline" data-key="ch_hide_offline" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- ch_auto_status — <?= $t["original"] ?? "الأصلي:" ?> 0 -->
     <label class="fc-card" for="f_ch_auto_status" style="cursor:pointer">
-      <div class="fc-info"><b>تحديث حالة القنوات تلقائياً</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
+      <div class="fc-info"><b><?= $t["gs_auto_status"] ?? "تحديث حالة القنوات تلقائياً" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_ch_auto_status" data-key="ch_auto_status" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- ch_check_interval — <?= $t["original"] ?? "الأصلي:" ?> 60 -->
-    <div class="fg" style="margin:0"><label class="fl">فترة فحص القنوات (ثانية) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 60)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_check_interval"] ?? "فترة فحص القنوات (ثانية)" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 60)</span></label>
       <input type="number" class="fi" id="f_ch_check_interval" data-key="ch_check_interval" data-type="text" placeholder="60"></div>
     <!-- ch_resume_last — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_ch_resume_last" style="cursor:pointer">
-      <div class="fc-info"><b>تشغيل آخر قناة تمت مشاهدتها</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_play_last_channel"] ?? "تشغيل آخر قناة تمت مشاهدتها" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_ch_resume_last" data-key="ch_resume_last" data-type="bool"><span class="fc-slider"></span></span>
     </label>
           </div>
@@ -645,7 +645,7 @@
   <div class="gs-acc" data-group="player" style="border:1px solid var(--br);border-radius:var(--r2,12px);margin-bottom:14px;overflow:hidden;background:var(--s1,transparent)">
     <button type="button" class="gs-acc-head" onclick="gsToggleAcc(this)" style="width:100%;display:flex;align-items:center;gap:12px;padding:16px 18px;background:transparent;border:none;cursor:pointer;color:var(--t1);text-align:right">
       <span style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#00D08422;color:#00D084;flex-shrink:0"><i class="fas fa-play-circle"></i></span>
-      <span style="flex:1;font-weight:700;font-size:1rem">إعدادات مشغّل الفيديو</span>
+      <span style="flex:1;font-weight:700;font-size:1rem"><?= $t["gs_player_settings"] ?? "إعدادات مشغّل الفيديو" ?></span>
       <i class="fas fa-chevron-down gs-acc-arrow" style="transition:transform .25s;color:var(--t3)"></i>
     </button>
     <div class="gs-acc-body" style="display:none;padding:0 18px 18px">
@@ -660,12 +660,12 @@
     </label>
     <!-- pl_mute_on_start — <?= $t["original"] ?? "الأصلي:" ?> 0 -->
     <label class="fc-card" for="f_pl_mute_on_start" style="cursor:pointer">
-      <div class="fc-info"><b>كتم الصوت عند التشغيل</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
+      <div class="fc-info"><b><?= $t["gs_mute_on_start"] ?? "كتم الصوت عند التشغيل" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_pl_mute_on_start" data-key="pl_mute_on_start" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- pl_auto_fullscreen — <?= $t["original"] ?? "الأصلي:" ?> 0 -->
     <label class="fc-card" for="f_pl_auto_fullscreen" style="cursor:pointer">
-      <div class="fc-info"><b>ملء الشاشة تلقائياً</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
+      <div class="fc-info"><b><?= $t["gs_auto_fullscreen"] ?? "ملء الشاشة تلقائياً" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_pl_auto_fullscreen" data-key="pl_auto_fullscreen" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- pl_pip — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
@@ -680,45 +680,45 @@
     </label>
     <!-- pl_seek_buttons — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_pl_seek_buttons" style="cursor:pointer">
-      <div class="fc-info"><b>أزرار التقديم والترجيع</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_seek_buttons"] ?? "أزرار التقديم والترجيع" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_pl_seek_buttons" data-key="pl_seek_buttons" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- pl_playback_speed — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
-    <div class="fg" style="margin:0"><label class="fl">سرعة التشغيل الافتراضية <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 1)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_default_speed"] ?? "سرعة التشغيل الافتراضية" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 1)</span></label>
       <select class="fs" id="f_pl_playback_speed" data-key="pl_playback_speed" data-type="text"><option value="0.5">0.5</option><option value="0.75">0.75</option><option value="1">1</option><option value="1.25">1.25</option><option value="1.5">1.5</option><option value="2">2</option></select></div>
     <!-- pl_thumbnails — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_pl_thumbnails" style="cursor:pointer">
-      <div class="fc-info"><b>معاينة الصور (Thumbnails)</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_thumbnails"] ?? "معاينة الصور (Thumbnails)" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_pl_thumbnails" data-key="pl_thumbnails" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- pl_show_channel_logo — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_pl_show_channel_logo" style="cursor:pointer">
-      <div class="fc-info"><b>إظهار شعار القناة</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_show_logo"] ?? "إظهار شعار القناة" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_pl_show_channel_logo" data-key="pl_show_channel_logo" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- pl_show_channel_name — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_pl_show_channel_name" style="cursor:pointer">
-      <div class="fc-info"><b>إظهار اسم القناة</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_show_ch_name"] ?? "إظهار اسم القناة" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_pl_show_channel_name" data-key="pl_show_channel_name" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- pl_show_clock — <?= $t["original"] ?? "الأصلي:" ?> 0 -->
     <label class="fc-card" for="f_pl_show_clock" style="cursor:pointer">
-      <div class="fc-info"><b>إظهار الساعة</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
+      <div class="fc-info"><b><?= $t["gs_show_clock"] ?? "إظهار الساعة" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_pl_show_clock" data-key="pl_show_clock" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- pl_show_viewers — <?= $t["original"] ?? "الأصلي:" ?> 0 -->
     <label class="fc-card" for="f_pl_show_viewers" style="cursor:pointer">
-      <div class="fc-info"><b>إظهار عداد المشاهدين</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
+      <div class="fc-info"><b><?= $t["gs_show_viewers"] ?? "إظهار عداد المشاهدين" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_pl_show_viewers" data-key="pl_show_viewers" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- pl_show_share — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_pl_show_share" style="cursor:pointer">
-      <div class="fc-info"><b>إظهار زر المشاركة</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_show_share"] ?? "إظهار زر المشاركة" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_pl_show_share" data-key="pl_show_share" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- pl_show_report — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_pl_show_report" style="cursor:pointer">
-      <div class="fc-info"><b>إظهار زر الإبلاغ</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_show_report"] ?? "إظهار زر الإبلاغ" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_pl_show_report" data-key="pl_show_report" data-type="bool"><span class="fc-slider"></span></span>
     </label>
           </div>
@@ -733,7 +733,7 @@
   <div class="gs-acc" data-group="streaming_client" style="border:1px solid var(--br);border-radius:var(--r2,12px);margin-bottom:14px;overflow:hidden;background:var(--s1,transparent)">
     <button type="button" class="gs-acc-head" onclick="gsToggleAcc(this)" style="width:100%;display:flex;align-items:center;gap:12px;padding:16px 18px;background:transparent;border:none;cursor:pointer;color:var(--t1);text-align:right">
       <span style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#4CC9F022;color:#4CC9F0;flex-shrink:0"><i class="fas fa-signal"></i></span>
-      <span style="flex:1;font-weight:700;font-size:1rem">إعدادات البث (Streaming)</span>
+      <span style="flex:1;font-weight:700;font-size:1rem"><?= $t["gs_streaming_settings"] ?? "إعدادات البث (Streaming)" ?></span>
       <i class="fas fa-chevron-down gs-acc-arrow" style="transition:transform .25s;color:var(--t3)"></i>
     </button>
     <div class="gs-acc-body" style="display:none;padding:0 18px 18px">
@@ -747,19 +747,19 @@
       <span class="fc-switch"><input type="checkbox" id="f_st_low_latency" data-key="st_low_latency" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- st_buffer_size — <?= $t["original"] ?? "الأصلي:" ?> 30 -->
-    <div class="fg" style="margin:0"><label class="fl">Buffer Size (ثانية 1-30) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 30)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_buffer_size"] ?? "Buffer Size (ثانية 1-30)" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 30)</span></label>
       <input type="number" class="fi" id="f_st_buffer_size" data-key="st_buffer_size" data-type="text" placeholder="30"></div>
     <!-- st_startup_buffer — <?= $t["original"] ?? "الأصلي:" ?> 2 -->
-    <div class="fg" style="margin:0"><label class="fl">Startup Buffer (ثانية) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 2)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_startup_buffer"] ?? "Startup Buffer (ثانية)" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 2)</span></label>
       <input type="number" class="fi" id="f_st_startup_buffer" data-key="st_startup_buffer" data-type="text" placeholder="2"></div>
     <!-- st_max_buffer — <?= $t["original"] ?? "الأصلي:" ?> 60 -->
-    <div class="fg" style="margin:0"><label class="fl">Max Buffer Length (ثانية) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 60)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_max_buffer"] ?? "Max Buffer Length (ثانية)" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 60)</span></label>
       <input type="number" class="fi" id="f_st_max_buffer" data-key="st_max_buffer" data-type="text" placeholder="60"></div>
     <!-- st_back_buffer — <?= $t["original"] ?? "الأصلي:" ?> 90 -->
-    <div class="fg" style="margin:0"><label class="fl">Back Buffer Length (ثانية) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 90)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_back_buffer"] ?? "Back Buffer Length (ثانية)" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 90)</span></label>
       <input type="number" class="fi" id="f_st_back_buffer" data-key="st_back_buffer" data-type="text" placeholder="90"></div>
     <!-- st_live_sync — <?= $t["original"] ?? "الأصلي:" ?> 3 -->
-    <div class="fg" style="margin:0"><label class="fl">Live Sync Duration (ثانية) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 3)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_live_sync"] ?? "Live Sync Duration (ثانية)" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 3)</span></label>
       <input type="number" class="fi" id="f_st_live_sync" data-key="st_live_sync" data-type="text" placeholder="3"></div>
     <!-- st_auto_quality — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_st_auto_quality" style="cursor:pointer">
@@ -767,43 +767,43 @@
       <span class="fc-switch"><input type="checkbox" id="f_st_auto_quality" data-key="st_auto_quality" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- st_default_quality — <?= $t["original"] ?? "الأصلي:" ?> auto -->
-    <div class="fg" style="margin:0"><label class="fl">الجودة الافتراضية <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> auto)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_default_quality"] ?? "الجودة الافتراضية" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> auto)</span></label>
       <select class="fs" id="f_st_default_quality" data-key="st_default_quality" data-type="text"><option value="auto">auto</option><option value="480">480</option><option value="720">720</option><option value="1080">1080</option></select></div>
     <!-- st_allow_quality_change — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_st_allow_quality_change" style="cursor:pointer">
-      <div class="fc-info"><b>السماح للمستخدم بتغيير الجودة</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_allow_quality_change"] ?? "السماح للمستخدم بتغيير الجودة" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_st_allow_quality_change" data-key="st_allow_quality_change" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- st_auto_reconnect — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_st_auto_reconnect" style="cursor:pointer">
-      <div class="fc-info"><b>إعادة الاتصال التلقائي عند الانقطاع</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_auto_reconnect"] ?? "إعادة الاتصال التلقائي عند الانقطاع" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_st_auto_reconnect" data-key="st_auto_reconnect" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- st_reconnect_attempts — <?= $t["original"] ?? "الأصلي:" ?> 5 -->
-    <div class="fg" style="margin:0"><label class="fl">عدد محاولات إعادة الاتصال <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 5)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_reconnect_tries"] ?? "عدد محاولات إعادة الاتصال" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 5)</span></label>
       <input type="number" class="fi" id="f_st_reconnect_attempts" data-key="st_reconnect_attempts" data-type="text" placeholder="5"></div>
     <!-- st_reconnect_timeout — <?= $t["original"] ?? "الأصلي:" ?> 3 -->
-    <div class="fg" style="margin:0"><label class="fl">المهلة قبل إعادة الاتصال (ثانية) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 3)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_reconnect_delay"] ?? "المهلة قبل إعادة الاتصال (ثانية)" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 3)</span></label>
       <input type="number" class="fi" id="f_st_reconnect_timeout" data-key="st_reconnect_timeout" data-type="text" placeholder="3"></div>
     <!-- st_failover — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_st_failover" style="cursor:pointer">
-      <div class="fc-info"><b>الانتقال لرابط احتياطي (Failover)</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_failover"] ?? "الانتقال لرابط احتياطي (Failover)" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_st_failover" data-key="st_failover" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- st_protocol — <?= $t["original"] ?? "الأصلي:" ?> hls -->
-    <div class="fg" style="margin:0"><label class="fl">استخدام HLS أو DASH <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> hls)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_hls_or_dash"] ?? "استخدام HLS أو DASH" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> hls)</span></label>
       <select class="fs" id="f_st_protocol" data-key="st_protocol" data-type="text"><option value="hls">hls</option><option value="dash">dash</option></select></div>
     <!-- st_llhls_support — <?= $t["original"] ?? "الأصلي:" ?> 0 -->
     <label class="fc-card" for="f_st_llhls_support" style="cursor:pointer">
-      <div class="fc-info"><b>دعم LL-HLS</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
+      <div class="fc-info"><b><?= $t["gs_llhls_support"] ?? "دعم LL-HLS" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 0</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_st_llhls_support" data-key="st_llhls_support" data-type="bool"><span class="fc-slider"></span></span>
     </label>
     <!-- st_playlist_refresh — <?= $t["original"] ?? "الأصلي:" ?> 6 -->
-    <div class="fg" style="margin:0"><label class="fl">مدة تحديث Playlist (ثانية) <span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 6)</span></label>
+    <div class="fg" style="margin:0"><label class="fl"><?= $t["gs_playlist_refresh"] ?? "مدة تحديث Playlist (ثانية)" ?><span style="color:var(--t3);font-weight:400">(<?= $t["original"] ?? "الأصلي:" ?> 6)</span></label>
       <input type="number" class="fi" id="f_st_playlist_refresh" data-key="st_playlist_refresh" data-type="text" placeholder="6"></div>
     <!-- st_stream_cache — <?= $t["original"] ?? "الأصلي:" ?> 1 -->
     <label class="fc-card" for="f_st_stream_cache" style="cursor:pointer">
-      <div class="fc-info"><b>Cache للبث</b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
+      <div class="fc-info"><b><?= $t["gs_stream_cache"] ?? "Cache للبث" ?></b><small><?= $t["original_value"] ?? "القيمة الأصلية:" ?> 1</small></div>
       <span class="fc-switch"><input type="checkbox" id="f_st_stream_cache" data-key="st_stream_cache" data-type="bool"><span class="fc-slider"></span></span>
     </label>
           </div>
@@ -816,9 +816,9 @@
 
   <!-- زر الحفظ الرئيسي -->
   <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;position:sticky;bottom:0;background:var(--s0,transparent);padding:6px 0">
-    <button class="btn btn-p" onclick="saveGeneralSettings()" style="padding:12px 30px"><i class="fas fa-save"></i> حفظ كل الإعدادات العامة</button>
+    <button class="btn btn-p" onclick="saveGeneralSettings()" style="padding:12px 30px"><i class="fas fa-save"></i><?= $t["gs_save_all"] ?? "حفظ كل الإعدادات العامة" ?></button>
     <button class="btn btn-g" onclick="loadGeneralSettings()"><i class="fas fa-rotate-left"></i> <?= $t["restore_saved"] ?? "استرجاع المحفوظ" ?></button>
-    <button class="btn btn-d" onclick="restoreDefaultSettings()" style="padding:12px 30px; background-color: #d32f2f; color: white; border-color: transparent;"><i class="fas fa-undo"></i> استرجاع كل القيم الأصلية</button>
+    <button class="btn btn-d" onclick="restoreDefaultSettings()" style="padding:12px 30px; background-color: #d32f2f; color: white; border-color: transparent;"><i class="fas fa-undo"></i><?= $t["gs_restore_all"] ?? "استرجاع كل القيم الأصلية" ?></button>
   </div>
 </section>
 

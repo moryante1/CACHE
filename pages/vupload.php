@@ -57,7 +57,7 @@
         <label class="fl"><?= $t["movie_name_search"] ?? "اسم الفيلم للبحث" ?></label>
         <div class="srow">
           <div class="sinp"><i class="fas fa-film"></i><input type="text" id="osQ" placeholder="<?= $t["movie_name_placeholder"] ?? "اسم الفيلم…" ?>" onkeydown="if(event.key==='Enter')osSearch()"></div>
-          <select class="lsel" id="osLang"><option value="ar">🇸🇦 عربي</option><option value="en">🇬🇧 English</option><option value="fr">🇫🇷 Français</option><option value="es">🇪🇸 Español</option><option value="de">🇩🇪 Deutsch</option><option value="tr">🇹🇷 Türkçe</option></select>
+          <select class="lsel" id="osLang"><option value="ar"><?= $t["lang_arabic_flag"] ?? "🇸🇦 عربي" ?></option><option value="en">🇬🇧 English</option><option value="fr">🇫🇷 Français</option><option value="es">🇪🇸 Español</option><option value="de">🇩🇪 Deutsch</option><option value="tr">🇹🇷 Türkçe</option></select>
           <button class="btn btn-p" onclick="osSearch()" id="osSearchBtn"><i class="fas fa-search"></i><?= $t["search"] ?? "بحث" ?></button>
         </div>
         <div id="osAl" style="margin-top:8px"></div>

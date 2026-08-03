@@ -1,0 +1,109 @@
+/* ==================================================
+   الضبط التلقائي للغات الأجنبية (LTR)
+   ================================================== */
+html[dir="ltr"] .sidebar { right: auto; left: 0; border-left: none; border-right: 1px solid var(--br); }
+html[dir="ltr"] .main { margin-right: 0; margin-left: var(--sw); }
+html[dir="ltr"] .sbrand, html[dir="ltr"] .si, html[dir="ltr"] .slogout, html[dir="ltr"] .snl { text-align: left; }
+html[dir="ltr"] .si.on::before { right: auto; left: 0; border-radius: 0 2px 2px 0; }
+html[dir="ltr"] .si-ic { margin-right: 11px; margin-left: 0; }
+html[dir="ltr"] th, html[dir="ltr"] td { text-align: left; }
+html[dir="ltr"] .tbr { flex-direction: row-reverse; }
+html[dir="ltr"] .srgrid .src-acts { border-right: none; border-left: 1px solid var(--br); }
+html[dir="ltr"] .tsrch { flex-direction: row-reverse; }
+html[dir="ltr"] .tsrch input { text-align: left; }
+html[dir="ltr"] .sc-v, html[dir="ltr"] .sc-l { text-align: left; }
+@media(max-width:768px){
+    html[dir="ltr"] .sidebar { transform: translateX(-100%); }
+    html[dir="ltr"] .sidebar.open { transform: translateX(0); }
+    html[dir="ltr"] .main { margin-left: 0; }
+}
+
+/* ==================================================
+   تصميم زر تغيير اللغات الاحترافي (حل مشكلة التناسق)
+   ================================================== */
+.lang-sw { position: relative; display: flex; align-items: center; }
+.lang-btn { display: flex; align-items: center; gap: 7px; background: var(--s2); border: 1px solid var(--br); border-radius: 100px; padding: 6px 14px; color: var(--t1); cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: 0.2s; direction: ltr; }
+.lang-btn:hover { background: var(--s3); border-color: var(--brh); }
+.lang-drop { position: absolute; top: calc(100% + 12px); background: var(--s1); border: 1px solid var(--brh); border-radius: 12px; min-width: 140px; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; z-index: 999; }
+.lang-drop.op { display: flex; }
+.lang-opt { padding: 12px 15px; color: var(--t2); text-decoration: none; font-size: 0.85rem; display: flex; align-items: center; transition: all 0.2s; border-bottom: 1px solid var(--br); font-weight: 500; }
+.lang-opt:last-child { border-bottom: none; }
+.lang-opt:hover { background: var(--s3); color: var(--t1); }
+.lang-flag { font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
+
+/* تناسق دقيق للغة العربية (RTL) */
+html[dir="rtl"] .lang-drop { left: 0; right: auto; }
+html[dir="rtl"] .lang-opt { flex-direction: row; }
+html[dir="rtl"] .lang-opt:hover { padding-right: 22px; padding-left: 8px; }
+html[dir="rtl"] .lang-flag { margin-left: 12px; margin-right: 0; }
+
+/* تناسق دقيق للغات الأجنبية (LTR) */
+html[dir="ltr"] .lang-drop { right: 0; left: auto; }
+html[dir="ltr"] .lang-opt { flex-direction: row; }
+html[dir="ltr"] .lang-opt:hover { padding-left: 22px; padding-right: 8px; }
+html[dir="ltr"] .lang-flag { margin-right: 12px; margin-left: 0; }
+
+/* ══ قائمة البروفايل المنسدلة (إضافة) ══ */
+.prof-sw{position:relative;display:flex;align-items:center}
+.prof-btn{display:flex;align-items:center;gap:9px;background:var(--s2);border:1px solid var(--br);border-radius:100px;padding:4px 12px 4px 4px;cursor:pointer;transition:.2s}
+.prof-btn:hover{background:var(--s3);border-color:var(--brh)}
+.prof-btn .uavt{width:34px;height:34px}
+.prof-avt-img{width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 0 12px var(--redg);flex-shrink:0;display:block}
+.prof-btn .prof-name{font-size:.83rem;font-weight:600;color:var(--t1)}
+.prof-btn .prof-caret{font-size:.7rem;color:var(--t3);transition:.25s}
+.prof-sw.op .prof-caret{transform:rotate(180deg)}
+.prof-drop{position:absolute;top:calc(100% + 12px);background:var(--s1);border:1px solid var(--brh);border-radius:14px;min-width:210px;display:none;flex-direction:column;box-shadow:0 14px 40px rgba(0,0,0,.7);overflow:hidden;z-index:999;animation:profIn .2s ease}
+.prof-sw.op .prof-drop{display:flex}
+@keyframes profIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.prof-head{display:flex;align-items:center;gap:11px;padding:15px 16px;border-bottom:1px solid var(--br);background:var(--s2)}
+.prof-head .prof-avt-img,.prof-head .uavt{width:42px;height:42px}
+.prof-head-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.prof-head-info b{font-size:.9rem;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prof-head-info small{font-size:.72rem;color:var(--t3)}
+.prof-logout{display:flex;align-items:center;gap:10px;padding:13px 16px;color:#ff6b6b;background:transparent;border:none;width:100%;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.86rem;font-weight:600;transition:.18s;text-align:right}
+html[dir="ltr"] .prof-logout{text-align:left}
+.prof-logout:hover{background:rgba(229,9,20,.1)}
+.prof-logout i{font-size:1rem}
+html[dir="rtl"] .prof-drop{left:0;right:auto}
+html[dir="ltr"] .prof-drop{right:0;left:auto}
+
+/* ══ فوتر النظام (إضافة) ══ */
+.sys-footer{margin-top:auto;padding:18px 32px;border-top:1px solid var(--br);text-align:center;color:var(--t3);font-size:.8rem;font-weight:500;letter-spacing:.3px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.sys-footer b{color:var(--t2);font-weight:700}
+.sys-footer .sf-dot{width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--redg)}
+.main{display:flex;flex-direction:column;min-height:100vh}
+@media(max-width:768px){.prof-btn .prof-name{display:none}.sys-footer{padding:14px 16px;font-size:.74rem}}
+
+/* ══ زر الوضع الليلي/النهاري (إضافة) ══ */
+.mode-toggle{width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:var(--s2);border:1px solid var(--br);border-radius:50%;color:var(--gold);cursor:pointer;font-size:.95rem;transition:.25s;flex-shrink:0}
+.mode-toggle:hover{background:var(--s3);border-color:var(--brh);transform:rotate(-15deg)}
+.mode-toggle i{transition:.3s}
+
+/* ألوان الوضع النهاري — تُفعّل عند وضع class على <html> */
+html.light-mode{
+  --red:#E50914;--redg:rgba(229,9,20,.25);--gold:#d97706;
+  --s0:#f1f3f7;--s1:#ffffff;--s2:#f4f6fa;--s3:#e9edf3;--s4:#dce2ea;
+  --br:rgba(0,0,0,.08);--brh:rgba(0,0,0,.16);
+  --t1:#16181d;--t2:#444a55;--t3:#7a828f;
+}
+html.light-mode .topbar{background:rgba(255,255,255,.9)}
+html.light-mode .sidebar{background:var(--s1)}
+html.light-mode .mode-toggle{color:#f5a623}
+html.light-mode body{background:var(--s0)}
+
+/* ══ قسم التحكم بالواجهة الأمامية (إضافة) ══ */
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.fc-card{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--s1);border:1px solid var(--br);border-radius:var(--r2);cursor:pointer;transition:.2s}
+.fc-card:hover{border-color:var(--brh);background:var(--s2)}
+.fc-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.fc-info{flex:1;min-width:0}
+.fc-info b{display:block;font-size:.92rem;color:var(--t1);margin-bottom:2px}
+.fc-info small{font-size:.76rem;color:var(--t3)}
+.fc-switch{position:relative;width:48px;height:26px;flex-shrink:0}
+.fc-switch input{opacity:0;width:0;height:0;position:absolute}
+.fc-slider{position:absolute;inset:0;background:var(--s4);border-radius:26px;transition:.25s;cursor:pointer}
+.fc-slider::before{content:"";position:absolute;width:20px;height:20px;right:3px;top:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.fc-switch input:checked + .fc-slider{background:#00D084}
+.fc-switch input:checked + .fc-slider::before{transform:translateX(-22px)}
+html[dir="ltr"] .fc-slider::before{right:auto;left:3px}
+html[dir="ltr"] .fc-switch input:checked + .fc-slider::before{transform:translateX(22px)}

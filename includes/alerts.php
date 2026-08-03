@@ -1,2 +1,0 @@
-<?php if(isset($_SESSION['success'])): ?><div class="al al-s"><i class="fas fa-check-circle"></i><?php echo htmlspecialchars($_SESSION['success'], ENT_QUOTES, 'UTF-8');unset($_SESSION['success']); ?></div><?php endif; ?>
-<?php if(isset($_SESSION['error'])): ?><div class="al al-e"><i class="fas fa-exclamation-circle"></i><?php echo htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8');unset($_SESSION['error']); ?></div><?php endif; ?>

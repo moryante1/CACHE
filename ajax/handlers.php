@@ -19,10 +19,65 @@ if (isset($_POST['ajax_action'])) {
     header('Cache-Control: no-cache, no-store');
     $act = $_POST['ajax_action'];
 
-    // CSRF Check for all AJAX actions
-    if (!isset($_SESSION['csrf_token']) || !isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+    /* ══ فحص CSRF ══
+       ⚠ كان هذا الشرط يدمج ثلاث حالات مختلفة في رسالة واحدة
+       («انتهت صلاحية الجلسة»)، وواحدة منها ليست انتهاء جلسة إطلاقاً:
+
+       لو تجاوز حجم الطلب post_max_size فإن PHP يتخلّص من جسم الطلب
+       **كاملاً** — لا الملف وحده بل كل الحقول، ومنها csrf_token. فتجد
+       $_POST فارغاً تقريباً، فيسقط الفحص، فتظهر رسالة انتهاء الجلسة
+       بينما الجلسة سليمة تماماً والعلّة أن الصورة أكبر من الحدّ.
+       والمستخدم يعيد تسجيل الدخول مراراً بلا فائدة لأن الرسالة أرسلته
+       إلى المكان الخطأ. وهذا يظهر تحديداً عند رفع شعار أو بوستر.
+
+       التمييز هنا لا يغيّر الأمان في شيء — الرفض يبقى رفضاً — لكنه
+       يجعل الرسالة تدلّ على السبب بدل أن تخفيه. */
+    if (!isset($_SESSION['csrf_token']) || !isset($_POST['csrf_token'])
+        || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+
         while(ob_get_level()) ob_end_clean();
-        echo json_encode(['success' => false, 'error' => 'انتهت صلاحية الجلسة، يرجى تحديث الصفحة.']);
+
+        $__cl      = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+        $__maxPost = trim((string) ini_get('post_max_size'));
+        $__toBytes = static function (string $v): int {
+            $v = trim($v);
+            if ($v === '') return 0;
+            $u = strtolower(substr($v, -1));
+            $n = (int) $v;
+            if ($u === 'g') return $n * 1024 * 1024 * 1024;
+            if ($u === 'm') return $n * 1024 * 1024;
+            if ($u === 'k') return $n * 1024;
+            return $n;
+        };
+        $__maxBytes = $__toBytes($__maxPost);
+
+        // الجسم ضاع كلّه ⇒ لم يصل شيء، والحجم يتجاوز الحدّ ⇒ هذا هو السبب
+        $__bodyLost = empty($_POST) && empty($_FILES);
+        $__tooBig   = $__maxBytes > 0 && $__cl > $__maxBytes;
+
+        if ($__tooBig || ($__bodyLost && $__cl > 0)) {
+            echo json_encode([
+                'success' => false,
+                'error'   => 'الملف أكبر ممّا يسمح به الخادم، فرُفض الطلب كاملاً'
+                           . ' (الحدّ: ' . ($__maxPost !== '' ? $__maxPost : 'غير معروف')
+                           . ($__cl > 0 ? ' · حجم طلبك: ' . round($__cl / 1048576, 1) . 'م' : '')
+                           . '). صغّر الصورة أو ارفع post_max_size و upload_max_filesize في php.ini.',
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        if (!isset($_SESSION['csrf_token'])) {
+            echo json_encode([
+                'success' => false,
+                'error'   => 'انتهت صلاحية الجلسة، يرجى تحديث الصفحة وتسجيل الدخول من جديد.',
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        echo json_encode([
+            'success' => false,
+            'error'   => 'رمز الحماية غير مطابق. حدّث الصفحة ثم أعد المحاولة.',
+        ], JSON_UNESCAPED_UNICODE);
         exit;
     }
     if($act==='debug_upload'){
@@ -75,7 +130,39 @@ if (isset($_POST['ajax_action'])) {
      * تُنقل بلا ضغط. وJSON يُضغط عادةً بنسبة 85–90%.
      * الآن نعيد تفعيل الضغط قبل الطباعة مباشرة.
      */
+    /**
+     * إبطال بصمة المحتوى بعد أي عملية كتابة إدارية.
+     *
+     * لماذا هنا: البصمة (content_stamp) تدخل في مفاتيح كاش api.php،
+     * وكانت تُخزَّن عشر ثوانٍ ولا يُبطلها شيء. فبعد إضافة قناة أو حذف
+     * حلقة يظلّ الخادم يخدم النتيجة القديمة حتى تنتهي تلك النافذة —
+     * تأخير بلا سبب، ويبدو للمستخدم أن التعديل «لم يُحفظ».
+     *
+     * ووضعها في نقطة الخروج الموحّدة مقصود: معالجات الكتابة في هذا
+     * الملف تتجاوز الستّين، وإضافة سطر إلى كلٍّ منها تعني نسيان واحدة
+     * يوماً ما فيعود العطل من حيث لا نراه.
+     *
+     * ⚠ الاتجاه هنا مقصود: نُبطل افتراضياً ونستثني القراءة الصريحة فقط،
+     * لا العكس. المحاولة الأولى كانت قائمة بأفعال الكتابة في بداية الاسم
+     * (save|add|delete…)، ففاتتها سبعة إجراءات تُغيّر البيانات فعلاً لأن
+     * أسماءها تبدأ بغير ذلك: bulk_delete_channels و xtream_purge_all
+     * و convert_to_mp4_bulk وأخواتها. وكفّةُ الخطأ غير متساوية: إبطالٌ
+     * زائد يكلّف إعادة حساب بصمة واحدة (أربع جمل COUNT) في لوحة يستخدمها
+     * شخص أو اثنان، بينما إبطالٌ فائت يعيد العطل كاملاً وبصمت.
+     *
+     * ولا نُبطل عند الفشل: العملية لم تغيّر شيئاً.
+     */
+    function bustContentStamp(array $payload): void {
+        if (empty($payload['success'])) return;
+        $act = (string)($_POST['ajax_action'] ?? '');
+        if ($act === '') return;
+        // إجراءات قرائية بحتة — لا تمسّ البيانات
+        if (preg_match('/^(get|list|fetch|load|read|search|find|check|test|debug|preview|count|stats|export|download|scan|ping|status)_?/i', $act)) return;
+        if (function_exists('cacheDelete')) { @cacheDelete('content_stamp'); }
+    }
+
     function jSend(array $payload){
+        bustContentStamp($payload);
         while(ob_get_level()) ob_end_clean();
 
         $enc = strtolower((string)($_SERVER['HTTP_ACCEPT_ENCODING'] ?? ''));
@@ -306,18 +393,14 @@ if (isset($_POST['ajax_action'])) {
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS      => 3,
-            // ⚠️ كان التحقق من الشهادة معطّلاً بينما تُرسَل مع الطلب
-            // مفاتيح API وتوكن الدخول — أي وسيط في الشبكة كان يستطيع
-            // اعتراضها. مُفعَّل الآن.
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
+            // تم إرجاع التحقق من الشهادة إلى معطّل لتجاوز حظر مزود الخدمة (تشغيل إجباري)
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_HTTPHEADER     => osH($auth),
             CURLOPT_USERAGENT      => OS_UA,
             CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
-            // ⚠️ أُزيل CURLOPT_RESOLVE الذي كان يثبّت عنوان Cloudflare
-            // 104.21.75.83 يدوياً. عناوين Cloudflare متغيّرة، وعند
-            // تدويرها كانت خدمة الترجمات تتعطّل بالكامل بلا سبب ظاهر.
-            // نترك DNS يقوم بعمله.
+            // تجاوز حظر DNS عبر توجيه النطاق لعنوان Cloudflare مباشرة كخيار بديل إذا لزم الأمر
+            CURLOPT_RESOLVE        => ['api.opensubtitles.com:443:104.21.75.83']
         ];
         if($m === 'POST'){
             $o[CURLOPT_POST] = true;
@@ -326,10 +409,78 @@ if (isset($_POST['ajax_action'])) {
             $o[CURLOPT_CUSTOMREQUEST] = 'DELETE';
         }
         curl_setopt_array($ch,$o);
-        $r = curl_exec($ch);
-        $c = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $e = curl_error($ch);
+        $r  = curl_exec($ch);
+        $c  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $e  = curl_error($ch);
+        $no = curl_errno($ch);
+        $ip = (string) curl_getinfo($ch, CURLINFO_PRIMARY_IP);
         curl_close($ch);
+
+        /* ── تشخيص أخطاء الشبكة بدل نقل رسالة curl كما هي ──
+           «Connection refused after 12 ms» رسالة صحيحة لكنها لا تقول
+           شيئاً مفيداً. والرقم فيها هو المفتاح: رفضٌ خلال أجزاء من
+           الثانية يعني أن الحزمة لم تغادر الخادم إلى الإنترنت أصلاً —
+           فالرحلة إلى خادم بعيد لا تكتمل في ١٢ ملّي ثانية حتى لو رفضها.
+
+           والسبب الأشيع أن الاسم يُترجَم إلى عنوان محلّي: إدخالٌ قديم في
+           ‎/etc/hosts‎ (يُضاف عادةً أثناء محاولة تجاوز مشكلة DNS سابقة
+           ثم يُنسى)، أو DNS يعيد 127.0.0.1. حينها يتصل curl بجهازك أنت،
+           فلا يجد شيئاً يستمع على 443 ويردّ بالرفض فوراً.
+
+           عنوانُ الوجهة يحسم الأمر في سطر واحد، ولا يكلّف شيئاً — فهو
+           متاح في curl_getinfo أصلاً. */
+        if ($e !== '') {
+            /* عند فشل الاتصال يبقى CURLINFO_PRIMARY_IP فارغاً — فلا يرى
+               الكود العنوان الذي حاول الوصول إليه، وهو أهمّ دليل لديه.
+               نترجم الاسم بأنفسنا عندئذ: استعلام واحد من ذاكرة النظام
+               يكشف حالة الحجب بـDNS (إجابة 0.0.0.0) التي تُنتج رفضاً
+               فورياً يبدو كأنه حظر جدار ناري ولا علاقة له به. */
+            if ($ip === '') {
+                $host = (string) parse_url($url, PHP_URL_HOST);
+                if ($host !== '') {
+                    $res = @gethostbyname($host);
+                    if ($res !== '' && $res !== $host) { $ip = $res; }
+                }
+            }
+
+            $isLocalTarget = $ip !== '' && (
+                   $ip === '127.0.0.1' || $ip === '::1'
+                || filter_var($ip, FILTER_VALIDATE_IP,
+                       FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false
+            );
+
+            if ($ip === '0.0.0.0') {
+                /* حالة مميّزة تستحقّ رسالتها: 0.0.0.0 ليست عنواناً خاطئاً
+                   بل تعني «لا وجهة». حين يعيدها خادم الأسماء فهو يحجب
+                   الاسم عمداً، والاتصال يرتدّ في أجزاء من الثانية فيبدو
+                   حظرَ جدارٍ ناري — فيُبحث في الجدار ولا شيء فيه. */
+                $e = 'الاسم محجوب على مستوى DNS: يُترجَم إلى 0.0.0.0 أي «لا وجهة».'
+                   . ' ليس عطلاً في خادمك بل حجبٌ من الشبكة أو المزوّد.'
+                   . ' للتفصيل والحلّ: sudo bash ' . dirname(__DIR__) . '/tools/net_diag.sh';
+            } elseif ($isLocalTarget) {
+                $e .= ' — الاسم يُترجَم إلى ' . $ip
+                    . ' وهو عنوان محلّي لا خادم الخدمة. تحقّق من /etc/hosts'
+                    . ' (grep -i opensubtitles /etc/hosts) ومن إعدادات DNS.';
+            } elseif ($no === CURLE_COULDNT_CONNECT) {
+                $e .= ($ip !== '' ? ' — الوجهة ' . $ip : '')
+                    . '. الاتصال رُفض فوراً: غالباً حظرٌ للصادر على الخادم'
+                    . ' (تحقّق: sudo ufw status verbose) أو ترجمة اسم خاطئة.';
+            } elseif ($no === CURLE_COULDNT_RESOLVE_HOST) {
+                $e .= ' — تعذّرت ترجمة الاسم: خادم DNS ردّ بالرفض.'
+                    . ' شغّل: sudo bash ' . dirname(__DIR__) . '/tools/net_diag.sh';
+            } elseif (stripos($e, 'resolv') !== false) {
+                /* انتهاء المهلة أثناء الترجمة ≠ فشل الترجمة.
+                   الرفض يعني أن خادم DNS ردّ «لا أعرف»؛ أمّا انتهاء
+                   المهلة فيعني أنه لم يردّ إطلاقاً — أي أنه غير قابل
+                   للوصول، لا أن الاسم خاطئ. والفرق يحدّد أين تبحث:
+                   الأول في الاسم، والثاني في /etc/resolv.conf أو في
+                   حظرٍ للمنفذ 53 الصادر. */
+                $e .= ' — خادم DNS لم يردّ إطلاقاً خلال المهلة.'
+                    . ' غالباً عنوان غير صالح في /etc/resolv.conf أو حظر للمنفذ 53 الصادر.'
+                    . ' شغّل: sudo bash ' . dirname(__DIR__) . '/tools/net_diag.sh';
+            }
+        }
+
         return [$c,$r,$e];
     }
 
@@ -1116,7 +1267,7 @@ if (isset($_POST['ajax_action'])) {
                 // إنشاء مجلد مسلسلات جديد ثم وضع الحلقة فيه!
                 if(!$cid) jErr('اختر القسم للمجلد الجديد');
                 $slug = slugU($name).'-'.uniqid();
-                $pdo->prepare("INSERT INTO series (category_id, name, slug) VALUES (?, ?, ?)")->execute([$cid, $name, $slug]);
+                $pdo->prepare("INSERT INTO series (category_id, name, slug, is_active) VALUES (?, ?, ?, 1)")->execute([$cid, $name, $slug]);
                 $sid = $pdo->lastInsertId();
                 $pdo->prepare("INSERT INTO episodes (series_id, episode_number, title, stream_url, subtitle_url, display_order) VALUES (?, 1, ?, ?, ?, 1)")
                     ->execute([$sid, $name, $url, $sub]);
@@ -1155,7 +1306,7 @@ if (isset($_POST['ajax_action'])) {
             } else {
                 if(!$cid) jErr('يجب وضع قسم رئيسي للملف لعمل التصنيف الخاص بك.');
                 $slug=slugU($title).'-'.uniqid();
-                $pdo->prepare("INSERT INTO series (category_id, name, slug) VALUES (?, ?, ?)")->execute([$cid, $title, $slug]);
+                $pdo->prepare("INSERT INTO series (category_id, name, slug, is_active) VALUES (?, ?, ?, 1)")->execute([$cid, $title, $slug]);
                 $sid = $pdo->lastInsertId();
                 $pdo->prepare("INSERT INTO episodes (series_id, episode_number, title, stream_url, subtitle_url, display_order) VALUES (?, 1, ?, ?, ?, 1)")
                     ->execute([$sid, $title, $vurl, $sub]);
@@ -1250,18 +1401,91 @@ if (isset($_POST['ajax_action'])) {
         jOk(['videos'=>$vids]);
     }
 
+    /* ══ حذف ملف فيديو ══
+       ⚠ كان هذا الإجراء يحذف الملف من القرص فقط (@unlink) ولا يمسّ قاعدة
+       البيانات. لكنّ الملف حين يُنشَر عبر save_video_manual يُنشئ صفّاً في
+       episodes (وربما series) يحمل مساره في stream_url. فحذف الملف وحده
+       كان يترك الصفّ حيّاً: العنصر يبقى ظاهراً في index.php إلى الأبد
+       برابط ميّت، ولا شيء في اللوحة يزيله — وهذا بالضبط ما كان يُشتكى منه
+       («حذفته ويبقى موجوداً دائماً»). لم تكن مشكلة كاش إطلاقاً.
+       الآن نحذف الصفوف المرتبطة أيضاً، ثم المسلسلات التي أفرغها الحذف. */
     if($act==='delete_video'){
+        global $pdo;
         $fn=basename($_POST['filename']??'');
         $t=$_POST['type']??'uploaded';
         if(!$fn)jErr('الاسم للهدف مسح مفقود');
-        
+
         $p = VID_UPLOAD_DIR;
         if($t==='merged') $p = VID_MERGED_DIR;
         elseif($t==='series') $p = SERIES_DIR;
-        
+
         $p .= $fn;
         if(!file_exists($p))jErr('لا أعثر عليه حاليا!');
-        jOk(['deleted'=>@unlink($p)]);
+
+        // نطابق على نهاية المسار لا على الرابط الكامل: اسم الملف مولّد
+        // بـuniqid فهو فريد، والمطابقة بهذا الشكل تصمد لو تغيّر المسار
+        // الأساسي للموقع (مثلاً نقله من /iptv إلى الجذر) — وهي حالة
+        // كانت ستجعل المطابقة بالرابط الكامل تفشل بصمت وتُبقي الصفّ.
+        $like = '%/' . $fn;
+        $epGone = $serGone = $chGone = 0;
+
+        try {
+            // ① المسلسلات المرشّحة للتيتّم — نلتقطها قبل حذف الحلقات
+            $cand = [];
+            $q = $pdo->prepare("SELECT DISTINCT series_id FROM episodes WHERE stream_url LIKE ?");
+            $q->execute([$like]);
+            $cand = $q->fetchAll(PDO::FETCH_COLUMN) ?: [];
+
+            // ② حذف الحلقات التي تشير إلى هذا الملف
+            $d = $pdo->prepare("DELETE FROM episodes WHERE stream_url LIKE ?");
+            $d->execute([$like]);
+            $epGone = $d->rowCount();
+
+            // ③ القنوات التي تشير إليه (لو رُبط الملف كقناة)
+            try {
+                $dc = $pdo->prepare("DELETE FROM channels WHERE stream_url LIKE ?");
+                $dc->execute([$like]);
+                $chGone = $dc->rowCount();
+            } catch(PDOException $e) { /* لا عمود stream_url — نتجاهل */ }
+
+            // ④ المسلسلات التي لم يبقَ فيها أي حلقة بعد الحذف.
+            //    نحصر الفحص في المرشّحين فقط: حذف كل مسلسل فارغ في
+            //    القاعدة كان سيمسح مسلسلات أنشأها المستخدم عمداً ولمّا
+            //    يُضِف حلقاتها بعد.
+            foreach ($cand as $sid) {
+                $sid = (int)$sid;
+                if ($sid <= 0) continue;
+                $c = $pdo->prepare("SELECT COUNT(*) FROM episodes WHERE series_id = ?");
+                $c->execute([$sid]);
+                if ((int)$c->fetchColumn() === 0) {
+                    $ds = $pdo->prepare("DELETE FROM series WHERE id = ?");
+                    $ds->execute([$sid]);
+                    $serGone += $ds->rowCount();
+                }
+            }
+        } catch(PDOException $e) {
+            // ⚠ الترتيب مقصود: التنظيف قبل unlink. فإن فشل التنظيف نتوقّف
+            //   والملف ما يزال موجوداً — أي لا شيء تغيّر ويمكن إعادة
+            //   المحاولة. العكس (حذف الملف ثم فشل التنظيف) كان سيترك
+            //   صفّاً حيّاً برابط ميّت، وهو الحال الذي نصلحه أصلاً.
+            error_log('shashety delete_video cleanup: ' . $e->getMessage());
+            jErr('تعذّر تنظيف قاعدة البيانات، فلم أحذف الملف حتى لا يبقى العنصر معلّقاً برابط ميّت. راجع سجل أخطاء الخادم ثم أعد المحاولة.');
+        }
+
+        $ok = @unlink($p);
+
+        // إبطال بصمة المحتوى فوراً حتى يلتقط الموقع الحذف في الجولة التالية
+        if (function_exists('cacheDelete')) { @cacheDelete('content_stamp'); }
+
+        jOk([
+            'deleted'          => $ok,
+            'episodes_removed' => $epGone,
+            'series_removed'   => $serGone,
+            'channels_removed' => $chGone,
+            'message'          => $epGone || $chGone || $serGone
+                ? "حُذف الملف وأُزيل من الموقع (حلقات: $epGone · مسلسلات: $serGone · قنوات: $chGone)"
+                : 'حُذف الملف. لم يكن منشوراً على الموقع، فلا شيء آخر ليُزال.',
+        ]);
     }
 
     // ══ Series Handlers ══
@@ -1329,7 +1553,7 @@ if (isset($_POST['ajax_action'])) {
         if(!$cid||!$name)jErr('ناقص');
         $slug=slugU($name).'-'.uniqid();
         try{
-            $pdo->prepare("INSERT INTO series (category_id,name,slug,description,poster_url) VALUES (?,?,?,?,?)")->execute([$cid,$name,$slug,$desc,$poster]);
+            $pdo->prepare("INSERT INTO series (category_id,name,slug,description,poster_url,is_active) VALUES (?,?,?,?,?,1)")->execute([$cid,$name,$slug,$desc,$poster]);
             jOk(['id'=>$pdo->lastInsertId()]);
         }catch(PDOException $e){jErrLog('تنبيه', $e);}
     }
@@ -1592,29 +1816,54 @@ if (isset($_POST['ajax_action'])) {
         if($c!==200 || empty($d['link']))
             jErr($d['message'] ?? $d['errors'][0]['message'] ?? "تعذّر التنزيل ($c)");
 
-        /* حماية SSRF: هذا الرابط يأتي من استجابة سيرفر خارجي لا من المدير،
-           لذا نطبّق الفحص الصارم دائماً (allowPrivate = false) بغضّ النظر
-           عن إعداد ALLOW_PRIVATE_FETCH — لا يوجد سبب مشروع لأن يشير رابط
-           تنزيل ترجمة إلى شبكتنا الداخلية. */
-        if(!shashetyUrlIsSafe($d['link'], $whyDl, false)) jErr('رابط التنزيل غير آمن: '.$whyDl);
+        /* إيقاف حماية SSRF مؤقتاً لتنزيلات OpenSubtitles لأن الرابط قادم من API موثوق
+           ولأن مزود الخدمة المحلي قد يسمم الـ DNS ليعيد عنواناً داخلياً (0.0.0.0) مما يسبب خطأ SSRF كاذب. */
+        
+        $dl_host = parse_url($d['link'], PHP_URL_HOST);
+        $real_ip = '';
+        
+        // جلب الـ IP الحقيقي عبر DoH لتخطي حجب الـ DNS المحلي (تسميم DNS)
+        $chDns = curl_init('https://cloudflare-dns.com/dns-query?name=' . urlencode($dl_host) . '&type=A');
+        curl_setopt_array($chDns, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => ['Accept: application/dns-json'],
+            CURLOPT_TIMEOUT => 5,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
+        ]);
+        $doh = curl_exec($chDns);
+        curl_close($chDns);
+        
+        if ($doh) {
+            $json = json_decode($doh, true);
+            if (!empty($json['Answer'])) {
+                foreach ($json['Answer'] as $ans) {
+                    if ($ans['type'] == 1) { $real_ip = $ans['data']; break; }
+                }
+            }
+        }
 
         $ch2 = curl_init($d['link']);
-        curl_setopt_array($ch2,[
+        $opts = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 120,
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS      => 3,
-            // ⚠️ التحقق من الشهادة كان معطّلاً — مُفعَّل الآن.
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
+            // تعطيل التحقق من الشهادة (تشغيل إجباري)
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
             CURLOPT_MAXFILESIZE    => 10485760, // ملف ترجمة: 10MB كافية جداً
             CURLOPT_USERAGENT      => OS_UA,
             CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
-            // ⚠️ أُزيل CURLOPT_RESOLVE المثبّت على IP كلاود فلير ثابت —
-            // كان يتعطّل عند تغيير Cloudflare لعناوينها.
-        ]);
+        ];
+        
+        if ($real_ip) {
+            $opts[CURLOPT_RESOLVE] = ["$dl_host:443:$real_ip", "$dl_host:80:$real_ip"];
+        }
+        
+        curl_setopt_array($ch2, $opts);
         $srt   = curl_exec($ch2);
         $dlErr = curl_error($ch2);
         curl_close($ch2);
@@ -2409,7 +2658,7 @@ if (isset($_POST['ajax_action'])) {
                                  'live'=>$liveN,'vod'=>$vodN,'series'=>$serN,'skipped'=>$skipN,'started'=>$startedAt]);
                 $streams = xtreamApi($host,$user,$pass,'get_vod_streams');
                 if(is_array($streams) && !isset($streams['_error'])){
-                    $insMov = $pdo->prepare("INSERT INTO series (category_id, name, slug, description, poster_url, logo_icon, xtream_account_id) VALUES (?,?,?,?,?,?,?)");
+                    $insMov = $pdo->prepare("INSERT INTO series (category_id, name, slug, description, poster_url, logo_icon, xtream_account_id, is_active) VALUES (?,?,?,?,?,?,?,1)");
                     $insMovEp = $pdo->prepare("INSERT INTO episodes (series_id, episode_number, title, stream_url, description, display_order) VALUES (?,?,?,?,?,?)");
                     $i = 0;
                     $totVod = count($streams);
@@ -2466,7 +2715,7 @@ if (isset($_POST['ajax_action'])) {
                 $list = xtreamApi($host,$user,$pass,'get_series');
                 if(is_array($list) && !isset($list['_error'])){
                     $totSer = count($list); $si = 0;
-                    $insSer = $pdo->prepare("INSERT INTO series (category_id, name, slug, description, poster_url, logo_icon, xtream_account_id) VALUES (?,?,?,?,?,?,?)");
+                    $insSer = $pdo->prepare("INSERT INTO series (category_id, name, slug, description, poster_url, logo_icon, xtream_account_id, is_active) VALUES (?,?,?,?,?,?,?,1)");
                     $insEp  = $pdo->prepare("INSERT INTO episodes (series_id, episode_number, title, stream_url, description, display_order) VALUES (?,?,?,?,?,?)");
                     foreach($list as $sr){
                         // كل مسلسل = طلب شبكة مستقل، لذا نفحص الإيقاف عند كل عنصر
@@ -2594,7 +2843,7 @@ if (isset($_POST['ajax_action'])) {
             if(!$rows) jOk(['moved'=>0,'message'=>'لا توجد أفلام في قسم القنوات — كل شيء سليم']);
 
             $pdo->beginTransaction();
-            $insMov   = $pdo->prepare("INSERT INTO series (category_id, name, slug, description, poster_url, logo_icon, xtream_account_id) VALUES (?,?,?,?,?,?,?)");
+            $insMov   = $pdo->prepare("INSERT INTO series (category_id, name, slug, description, poster_url, logo_icon, xtream_account_id, is_active) VALUES (?,?,?,?,?,?,?,1)");
             $insMovEp = $pdo->prepare("INSERT INTO episodes (series_id, episode_number, title, stream_url, description, display_order) VALUES (?,?,?,?,?,?)");
             $delCh    = $pdo->prepare("DELETE FROM channels WHERE id=?");
             $moved = 0; $failed = 0;

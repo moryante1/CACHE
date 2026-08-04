@@ -266,3 +266,67 @@ function shashetyDeleteLocalFile($url) {
     return @unlink($real);
 }
 
+
+/**
+ * ترحيل لمرّة واحدة: ضمان أن المحتوى المُضاف يظهر على الموقع.
+ *
+ * ── المشكلة التي يعالجها ──
+ * كل جمل `INSERT INTO channels` تضبط is_active = 1 صراحةً، بينما لم
+ * تكن أيٌّ من جمل `INSERT INTO series` تضبطها — كانت تعتمد على القيمة
+ * الافتراضية للعمود. وفي الوقت نفسه يفلتر api.php المسلسلات بـ
+ * `s.is_active = 1` في ثمانية مواضع، ولا تفلترها لوحة الإدارة إطلاقاً.
+ *
+ * فإن لم يكن للعمود افتراضٌ صحيح، فالنتيجة: الفيلم يُحفَظ، ويظهر في
+ * اللوحة، ولا يظهر في index.php أبداً — لا بعد دقيقة ولا بعد يوم. بل
+ * إن بصمة المحتوى نفسها تفلتر بـis_active، فلا تتغيّر، فلا يُبطَل أي
+ * كاش، ولا يصل إشعار تحديث. غيابٌ صامت تامّ، وهو أسوأ أنواع الأعطال:
+ * لا رسالة خطأ تدلّ عليه.
+ *
+ * الجمل مصحّحة الآن في المصدر، لكن الصفوف التي أُدخلت قبل التصحيح
+ * تبقى مخفيّة، ولذلك هذا الترحيل.
+ *
+ * ⚠ نصلح NULL فقط ولا نمسّ 0 إطلاقاً: NULL تعني «لم تُضبط قط»، أما 0
+ * فتعني «عطّلها المدير عمداً» — وإعادة تفعيلها ستُظهر للمشتركين محتوى
+ * أُخفي بقرار.
+ *
+ * @return bool
+ */
+function contentEnsureActiveFlags(): bool
+{
+    static $done = null;
+    if ($done !== null) return $done;
+
+    $flag = __DIR__ . '/../storage/.content_active_ok';
+    if (is_file($flag)) { return $done = true; }
+
+    try {
+        $pdo = function_exists('db') ? db() : ($GLOBALS['pdo'] ?? null);
+        if (!$pdo instanceof PDO) return $done = false;
+
+        foreach (['series', 'channels'] as $tbl) {
+            // هل العمود موجود أصلاً؟ لا نفترض بنية لم نتحقّق منها.
+            $c = $pdo->prepare(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'is_active'"
+            );
+            $c->execute([$tbl]);
+            if ((int) $c->fetchColumn() === 0) continue;
+
+            // ① الصفوف التي لم تُضبط قط
+            try { $pdo->exec("UPDATE `$tbl` SET is_active = 1 WHERE is_active IS NULL"); }
+            catch (PDOException $e) { /* قد يكون العمود NOT NULL — لا ضير */ }
+
+            // ② الافتراض نفسه، حتى لا تعود المشكلة مع أي إدراج مستقبلي
+            //    كُتب من خارج هذا المشروع (سكربت استيراد، أداة خارجية…)
+            try { $pdo->exec("ALTER TABLE `$tbl` ALTER COLUMN is_active SET DEFAULT 1"); }
+            catch (PDOException $e) { /* لا صلاحية ALTER — التصحيح في الكود يكفي */ }
+        }
+
+        @file_put_contents($flag, date('c'));
+        return $done = true;
+
+    } catch (PDOException $e) {
+        error_log('shashety contentEnsureActiveFlags: ' . $e->getMessage());
+        return $done = false;
+    }
+}

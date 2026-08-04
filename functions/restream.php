@@ -41,7 +41,40 @@ function rsRoot(): string {
     return $r = dirname(__DIR__) . '/storage/hls';
 }
 
-function rsMaxChannels(): int { return max(1, (int)rsCfg('RESTREAM_MAX_CHANNELS', 25)); }
+/* حدّ القنوات المتزامنة.
+   يُقرأ من قاعدة البيانات أوّلاً (يضبطه المدير من اللوحة بلا طرفية)،
+   ثم من ملف الإعدادات (RESTREAM_MAX_CHANNELS الذي يضعه setup_restream.sh)،
+   وإلا 25. نفس نمط restream_enabled — فيتغيّر فوراً من الويب. */
+function rsMaxChannels(): int {
+    try {
+        if (function_exists('db') && db()) {
+            $st = db()->prepare("SELECT setting_value FROM settings WHERE setting_key='restream_max_channels' LIMIT 1");
+            $st->execute();
+            $v = $st->fetchColumn();
+            if ($v !== false && (int)$v > 0) return max(1, min(500, (int)$v));
+        }
+    } catch (Throwable $e) { /* نسقط للاحتياطي */ }
+    return max(1, (int)rsCfg('RESTREAM_MAX_CHANNELS', 25));
+}
+
+/** ضبط حدّ القنوات من اللوحة. يكتب في settings فيُقرأ فوراً. */
+function rsSetMaxChannels(int $n): bool {
+    $n = max(1, min(500, $n));   // سقف عقلاني يمنع رقماً كارثياً
+    try {
+        $pdo = db();
+        $q = $pdo->prepare("SELECT id FROM settings WHERE setting_key='restream_max_channels' LIMIT 1");
+        $q->execute();
+        if ($q->fetchColumn()) {
+            return $pdo->prepare("UPDATE settings SET setting_value=? WHERE setting_key='restream_max_channels'")
+                       ->execute([(string)$n]);
+        }
+        return $pdo->prepare("INSERT INTO settings (setting_key,setting_value) VALUES ('restream_max_channels',?)")
+                   ->execute([(string)$n]);
+    } catch (Throwable $e) {
+        error_log('rsSetMaxChannels: ' . $e->getMessage());
+        return false;
+    }
+}
 function rsIdleTimeout(): int { return max(20, (int)rsCfg('RESTREAM_IDLE', 60)); }
 
 /**
@@ -493,7 +526,11 @@ function rsReapIdle(): int {
 
 /** لوحة حالة مختصرة. */
 function rsStatus(): array {
-    $out = ['enabled' => rsEnabled(), 'root' => rsRoot(), 'max' => rsMaxChannels(),
+    // القفل الصلب من الطرفية (setup_restream.sh --off) يتجاوز اللوحة.
+    // نكشفه للواجهة كي تشرح للمدير لماذا لا يعمل الزرّ بدل صمت محيّر.
+    $hardOff = ((string)rsCfg('RESTREAM_HARD_OFF', '0') === '1');
+    $out = ['enabled' => rsEnabled(), 'hard_off' => $hardOff,
+            'root' => rsRoot(), 'max' => rsMaxChannels(),
             'idle' => rsIdleTimeout(), 'channels' => []];
     $dirs = [];
     foreach (rsAllRoots() as $root) {

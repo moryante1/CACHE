@@ -539,7 +539,7 @@ function uploadChannelLogo(inp,inputId,previewId,statusId){
     const f=inp.files[0];if(!f)return;
     const statusEl=$(statusId),previewEl=$(previewId);
     statusEl.innerHTML='<span class="sp"></span> جاري رفع الصورة...';
-    const fd=new FormData();fd.append('ajax_action','upload_channel_logo');fd.append('logo',f);
+    const fd=new FormData();if(window.csrfToken)fd.append('csrf_token',window.csrfToken);fd.append('ajax_action','upload_channel_logo');fd.append('logo',f);
     const xhr=new XMLHttpRequest();
     xhr.upload.onprogress=e=>{if(e.lengthComputable)statusEl.innerHTML=`<span class="sp"></span> ${Math.round(e.loaded/e.total*100)}%`;};
     xhr.onload=()=>{

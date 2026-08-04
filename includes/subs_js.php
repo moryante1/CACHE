@@ -704,11 +704,26 @@ window.rsLoadStatus = function(){
     if (!d.success) { say('rsAlert', emsg(d), 'e'); return; }
     const r = d.restream || {};
     const sw = $$('setRestream');
-    if (sw) sw.checked = !!r.enabled;
+    if (sw) {
+      sw.checked = !!r.enabled;
+      // قفل صلب من الطرفية: نعطّل المفتاح ونشرح، فلا يبدو معطّلاً بصمت
+      sw.disabled = !!r.hard_off;
+    }
+
+    // نملأ حقل الحدّ بالقيمة الحالية — ما لم يكن المستخدم يكتب فيه الآن
+    const li = $$('rsLimitInput');
+    if (li && document.activeElement !== li && r.max) li.value = r.max;
 
     const note = $$('rsStateNote');
     if (note) {
-      if (r.can_exec === false) {
+      if (r.hard_off) {
+        // ليس عطلاً: إيقاف صلب مقصود من الطرفية، ولا يُلغى إلا منها
+        note.innerHTML = '<span style="color:#F5A623">■ '
+          + E(RS.hard_off || 'موقوف إيقافاً صلباً من الطرفية — الزرّ معطّل عمداً.')
+          + '</span><br><span style="color:#8a8a94;font-size:.8em">'
+          + E(RS.hard_off_fix || 'لإلغائه: sudo bash /var/www/html/iptv/setup_restream.sh')
+          + '</span>';
+      } else if (r.can_exec === false) {
         note.innerHTML = '<span style="color:#e50914">'
           + E(RS.no_exec) + '</span>';
       } else if (!r.ffmpeg) {
@@ -771,6 +786,22 @@ window.rsStopAll = function(){
   API('restream_stop_all').then(d => {
     if (!d.success) { say('rsAlert', emsg(d), 'e'); return; }
     say('rsAlert', RS.stopped.replace('{n}', d.stopped), 's');
+    rsLoadStatus();
+  });
+};
+
+/* حفظ حدّ القنوات من اللوحة — بلا طرفية ولا sudo.
+   يُطبَّق فوراً لأن rsMaxChannels يقرأ من قاعدة البيانات. */
+window.rsSaveLimit = function(){
+  const li = $$('rsLimitInput'); if (!li) return;
+  const n = parseInt(li.value, 10);
+  if (!(n >= 1 && n <= 500)) { say('rsAlert', RS.limit_bad || 'أدخل رقماً بين 1 و 500', 'e'); return; }
+  const btn = $$('rsLimitSaveBtn'); if (btn) btn.disabled = true;
+  API('restream_set_limit', { limit: n }).then(d => {
+    if (btn) btn.disabled = false;
+    if (!d.success) { say('rsAlert', emsg(d), 'e'); return; }
+    if (d.max) li.value = d.max;
+    say('rsAlert', (RS.limit_saved || 'حُفظ الحدّ: {n} قناة').replace('{n}', d.max), 's');
     rsLoadStatus();
   });
 };

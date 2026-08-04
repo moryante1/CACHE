@@ -53,32 +53,104 @@ if (!defined('IS_HTTPS')) {
  * @param mixed  $default القيمة الافتراضية عند غياب المتغير.
  * @return mixed
  */
+/**
+ * تحليل ملف بصيغة KEY=VALUE إلى مصفوفة.
+ *
+ * @param string $file
+ * @return array<string,string>
+ */
+function envParseFile(string $file): array
+{
+    $out   = [];
+    $lines = @file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+    foreach ($lines as $line) {
+        $line = trim($line);
+        // نتخطّى التعليقات والأسطر بلا "=" — ونتحمّل نهايات أسطر ويندوز
+        if ($line === '' || $line[0] === '#' || strpos($line, '=') === false) {
+            continue;
+        }
+        [$k, $v] = explode('=', $line, 2);
+        $k = trim($k);
+        $v = trim($v, " \t\n\r\0\x0B");
+        // إزالة علامات الاقتباس المحيطة
+        if (strlen($v) > 1
+            && (($v[0] === '"' && $v[-1] === '"') || ($v[0] === "'" && $v[-1] === "'"))
+        ) {
+            $v = substr($v, 1, -1);
+        }
+        if ($k !== '') { $out[$k] = $v; }
+    }
+    return $out;
+}
+
+/**
+ * قراءة متغيّر إعداد من أول مصدر متاح.
+ *
+ * ══ لماذا سلسلة مصادر بدل ملف واحد ══
+ * كان الإعداد كلّه في ‎APP_ROOT/.env‎ — أي داخل المجلد الذي تُرفع
+ * نسخته من ويندوز. وهذا يجمع خطرين في موضع واحد:
+ *
+ *   ① الرفع يستبدل ملف الخادم بنسختك المحلية، فتضيع كلمة مرور
+ *      الإنتاج ويحلّ محلّها ما في جهازك. حدث هذا فعلاً أكثر من مرّة.
+ *   ② الرفع يعيد ضبط الملكية إلى مستخدم الـFTP، فلا يقرأ Apache
+ *      الملف، فترتدّ القيم إلى الافتراضي بصمت.
+ *
+ * كلاهما ينتهي بنفس رسالة «خطأ في الاتصال بقاعدة البيانات».
+ *
+ * الحلّ أن تعيش الأسرار خارج المجلد المرفوع. الترتيب هنا من الأعلى
+ * أولويةً إلى الأدنى، والأعلى يُلغي ما دونه مفتاحاً بمفتاح — فيمكن
+ * أن يبقى ‎.env‎ للإعدادات العامة بينما تُقرأ كلمة المرور من الخارج:
+ *
+ *   1. متغيّرات الخادم ($_SERVER / $_ENV) — SetEnv في Apache
+ *   2. المسار في متغيّر البيئة SHASHETY_ENV — لمن يريد مكاناً خاصاً
+ *   3. ‎/etc/shashety/env‎ — الموضع القياسي على خادم تملكه
+ *   4. ‎<فوق جذر الويب>/.shashety-env‎ — للاستضافة المشتركة بلا /etc
+ *   5. ‎APP_ROOT/.env‎ — القديم، يبقى ليعمل ما هو قائم بلا تعديل
+ *
+ * @param string $key     اسم المتغيّر.
+ * @param mixed  $default القيمة الافتراضية عند غيابه من كل المصادر.
+ * @return mixed
+ */
 function env(string $key, $default = null)
 {
     static $vars = null;
 
     if ($vars === null) {
         $vars = [];
-        $envFile = dirname(__DIR__) . '/.env'; // moved to core/: keep .env at project root
-        if (is_readable($envFile)) {
-            $lines = @file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
-            foreach ($lines as $line) {
-                $line = trim($line);
-                if ($line === '' || $line[0] === '#' || strpos($line, '=') === false) {
-                    continue;
-                }
-                [$k, $v] = explode('=', $line, 2);
-                $k = trim($k);
-                $v = trim($v);
-                // إزالة علامات الاقتباس المحيطة
-                if (strlen($v) > 1
-                    && (($v[0] === '"' && $v[-1] === '"') || ($v[0] === "'" && $v[-1] === "'"))
-                ) {
-                    $v = substr($v, 1, -1);
-                }
-                $vars[$k] = $v;
+        $root = dirname(__DIR__);
+
+        $candidates = [];
+        $explicit = getenv('SHASHETY_ENV');
+        if (is_string($explicit) && $explicit !== '') { $candidates[] = $explicit; }
+        $candidates[] = '/etc/shashety/env';
+        $candidates[] = dirname($root) . '/.shashety-env';
+        $candidates[] = $root . '/.env';
+
+        /* نقرأ من الأدنى أولويةً إلى الأعلى، فيَكتب الأعلى فوق الأدنى.
+           المصدر الأعلى قد يحمل مفتاحاً واحداً فقط (كلمة المرور مثلاً)
+           فلا يُلغي بقيّة الإعدادات، وهو المطلوب. */
+        $used = [];
+        foreach (array_reverse($candidates) as $file) {
+            if (is_file($file) && is_readable($file)) {
+                $vars   = array_merge($vars, envParseFile($file));
+                $used[] = $file;
+            } elseif (is_file($file)) {
+                /* موجود ولا يُقرأ — تمييزه عن «غير موجود» جوهري:
+                   الأول إعداد صحيح حجبته الصلاحيات، والثاني تثبيت ناقص.
+                   بلا هذا التمييز يبدو العطلان واحداً ويقودان للمكان
+                   الخطأ في البحث. */
+                @error_log(
+                    'shashety: ملف الإعدادات ' . $file . ' موجود لكن تعذّرت قراءته بهوية '
+                    . (function_exists('posix_getpwuid') && function_exists('posix_geteuid')
+                        ? (posix_getpwuid(posix_geteuid())['name'] ?? '?') : '?')
+                    . ' — الإصلاح: sudo bash ' . $root . '/tools/fix_permissions.sh'
+                );
+                if (!defined('ENV_UNREADABLE')) { define('ENV_UNREADABLE', true); }
             }
         }
+        /* آخر ملف دُمج هو الأعلى أولويةً — لأننا دمجنا تصاعدياً.
+           التقاطُ الأول كان سيبلّغ عن المصدر الأدنى ويضلّل التشخيص. */
+        if (!defined('ENV_SOURCE')) { define('ENV_SOURCE', $used ? end($used) : ''); }
     }
 
     $fromServer = $_SERVER[$key] ?? $_ENV[$key] ?? null;
@@ -95,7 +167,13 @@ function env(string $key, $default = null)
 if (!defined('DB_HOST'))    { define('DB_HOST',    (string) env('DB_HOST', 'localhost')); }
 if (!defined('DB_NAME'))    { define('DB_NAME',    (string) env('DB_NAME', 'iptv_db')); }
 if (!defined('DB_USER'))    { define('DB_USER',    (string) env('DB_USER', 'iptv_user')); }
-if (!defined('DB_PASS'))    { define('DB_PASS',    (string) env('DB_PASS', '123456')); }
+/* ⚠ لا قيمة افتراضية لكلمة المرور — والفرق ليس شكلياً.
+   كانت '123456'، فحين يتعذّر العثور على الإعدادات (رفعٌ غيّر الملكية،
+   أو ملف مفقود) يمضي الكود بهدوء ويحاول اتصالاً محكوماً بالفشل، فيصل
+   المستخدم خطأُ MySQL «Access denied» بدل السبب الحقيقي. سلسلةٌ من
+   الأعراض المضلّلة كلّها أصلها هذا السطر.
+   الآن: الغياب يعني «لم يُقرأ الإعداد»، ويُعالَج صراحةً أدناه. */
+if (!defined('DB_PASS'))    { define('DB_PASS',    (string) env('DB_PASS', '')); }
 if (!defined('DB_CHARSET')) { define('DB_CHARSET', (string) env('DB_CHARSET', 'utf8mb4')); }
 
 // مسارات النظام
@@ -166,6 +244,35 @@ if (session_status() === PHP_SESSION_NONE && PHP_SAPI !== 'cli') {
 // ══════════════════════════════════════════════════════════════
 // 4) الاتصال بقاعدة البيانات (PDO)
 // ══════════════════════════════════════════════════════════════
+
+/* فحص مسبق: هل عُثر على إعدادات أصلاً؟
+   نميّز حالتين تبدوان واحدة وهما مختلفتان تماماً:
+     • ENV_SOURCE فارغ ⇒ لم يُقرأ أي ملف إعدادات. هذا خطأ تثبيت،
+       ومحاولة الاتصال ستفشل حتماً وتُنتج رسالة MySQL مضلّلة.
+     • ENV_SOURCE موجود وDB_PASS فارغة ⇒ كلمة مرور فارغة مقصودة
+       (شائع في بيئات التطوير المحلية) — نمضي بلا اعتراض.
+   بلا هذا التمييز إمّا نمنع إعداداً مشروعاً، أو نُخفي عطلاً حقيقياً. */
+if (DB_PASS === '' && (!defined('ENV_SOURCE') || ENV_SOURCE === '')) {
+    @error_log('shashety FATAL: لم يُعثر على أي ملف إعدادات — لا /etc/shashety/env ولا .env');
+    if (!headers_sent()) {
+        http_response_code(503);
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    $__cli = PHP_SAPI === 'cli';
+    $__ip  = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    $__loc = $__cli || $__ip === '127.0.0.1' || $__ip === '::1'
+          || (filter_var($__ip, FILTER_VALIDATE_IP) !== false
+              && filter_var($__ip, FILTER_VALIDATE_IP,
+                     FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false);
+    $__out = ['success' => false, 'error' => 'النظام غير مُهيّأ بعد. يرجى المحاولة لاحقاً.'];
+    if ($__loc) {
+        $__out['hint'] = 'لم يُعثر على ملف إعدادات في أيٍّ من: /etc/shashety/env · '
+                       . dirname(APP_ROOT) . '/.shashety-env · ' . APP_ROOT . '/.env'
+                       . '  —  الإصلاح: sudo bash ' . APP_ROOT . '/install_env.sh';
+    }
+    die(json_encode($__out, JSON_UNESCAPED_UNICODE));
+}
+
 try {
     $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
 
@@ -186,15 +293,37 @@ try {
     // تسجيل الخطأ بدلاً من عرضه للمستخدم
     error_log('Database Connection Error: ' . $e->getMessage());
 
-    // عرض رسالة عامة للمستخدم
+    /* السبب الأشيع لهذا الخطأ ليس عطلاً في MySQL بل تعذُّر قراءة .env
+       بعد رفع الملفات، فترتدّ كلمة المرور إلى الافتراضية. الرسالة
+       العامة صحيحة لكنها تُرسل الباحث إلى قاعدة البيانات بينما العلّة
+       في الصلاحيات — لذا نضيف التشخيص، ولمن يشغّل الخادم فقط.
+
+       الشرط هنا شبكة خاصّة أو نفس الجهاز: لا نكشف تفاصيل بنية الخادم
+       لزائر من الإنترنت، ولا نكتفي بإخفائها عمّن يحتاجها فعلاً. */
+    $ip   = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    $isLocal = PHP_SAPI === 'cli'
+            || $ip === '127.0.0.1' || $ip === '::1'
+            || (filter_var($ip, FILTER_VALIDATE_IP) !== false
+                && filter_var($ip, FILTER_VALIDATE_IP,
+                       FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false);
+
+    $msg = 'عذراً، حدث خطأ في الاتصال بقاعدة البيانات. يرجى المحاولة لاحقاً.';
+    $out = ['success' => false, 'error' => $msg];
+
+    if ($isLocal) {
+        $src = defined('ENV_SOURCE') && ENV_SOURCE !== '' ? ENV_SOURCE : '(لا شيء)';
+        $out['hint'] = defined('ENV_UNREADABLE')
+            ? 'ملف إعدادات موجود لكن خادم الويب لا يستطيع قراءته. '
+              . 'الإصلاح: sudo bash ' . APP_ROOT . '/tools/fix_permissions.sh'
+            : 'المصدر المقروء: ' . $src . ' — راجع DB_USER و DB_PASS فيه، '
+              . 'ثم: sudo bash ' . APP_ROOT . '/fix_db_password.sh';
+    }
+
     if (!headers_sent()) {
         http_response_code(503);
         header('Content-Type: application/json; charset=utf-8');
     }
-    die(json_encode([
-        'success' => false,
-        'error'   => 'عذراً، حدث خطأ في الاتصال بقاعدة البيانات. يرجى المحاولة لاحقاً.',
-    ], JSON_UNESCAPED_UNICODE));
+    die(json_encode($out, JSON_UNESCAPED_UNICODE));
 }
 
 /**

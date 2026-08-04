@@ -29,5 +29,25 @@ try {
 } catch(PDOException $e) {}
 
 
-$all_folders_list = $pdo->query("SELECT id, name FROM series ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+/* ⚠ هذا السطر كان أثقل عبء في admin.php:
+   كان يجلب كل صفوف series (١٩٣ ألفاً بعد استيراد Xtream) في كل تحميل
+   للصفحة، ثم تُحقَن كاملةً كـ JSON داخل الصفحة (includes/main_js.php).
+   خادمٌ يقرأ ويرتّب ويشفّر ميغابايتات، ومتصفحٌ يحلّلها — عند كل فتح.
+
+   لكن غرض هذه القائمة اختيار «مجلد رفع» تُحفظ فيه ملفات مرفوعة يدوياً،
+   لا استعراض أفلام Xtream المستوردة. المستورَد يحمل xtream_account_id،
+   واليدوي لا. فنفلتر عليه: القائمة تعود عشرات المجلدات بدل مئات
+   الآلاف. وحدّ 2000 سقف أمان لو أنشأ أحد عدداً كبيراً يدوياً. */
+try {
+    $st = $pdo->query(
+        "SELECT id, name FROM series
+         WHERE xtream_account_id IS NULL OR xtream_account_id = 0
+         ORDER BY name ASC LIMIT 2000"
+    );
+    $all_folders_list = $st->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // احتياط: لو لم يوجد العمود، نحدّ العدد على الأقل كي لا نُحمّل كل شيء
+    $all_folders_list = $pdo->query("SELECT id, name FROM series ORDER BY id DESC LIMIT 500")
+                            ->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>

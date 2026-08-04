@@ -11,6 +11,9 @@ require_once __DIR__ . '/functions/helpers.php';
 require_once __DIR__ . '/functions/subscriptions.php';
 subsEnsureSchema();   // إنشاء الجداول عند أول تشغيل — يُتخطّى لاحقاً بعلامة ملف
 subsExpireDue();      // تعطيل الحسابات المنتهية
+// إظهار المحتوى المُضاف: يصحّح صفوف is_active التي لم تُضبط قط.
+// مرّة واحدة ثم يُتخطّى بعلامة ملف (storage/.content_active_ok).
+contentEnsureActiveFlags();
 require_once __DIR__ . '/ajax/router.php';
 require_once __DIR__ . '/handlers/categories.php';
 require_once __DIR__ . '/handlers/channels.php';

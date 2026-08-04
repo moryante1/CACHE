@@ -488,6 +488,16 @@ case 'restream_stop_all': {
     break;
 }
 
+case 'restream_set_limit': {
+    require_once __DIR__ . '/functions/restream.php';
+    $n = (int)($_POST['limit'] ?? 0);
+    if ($n < 1 || $n > 500) sErr('bad_limit');   // نطاق معقول
+    if (!rsSetMaxChannels($n)) sErr('server', 500);
+    if (function_exists('logTo')) logTo('admin', "حدّ قنوات الوسيط ← $n بواسطة $admin");
+    sOk(['max' => rsMaxChannels()]);
+    break;
+}
+
 default:
     sErr('unknown_action', 404);
 }

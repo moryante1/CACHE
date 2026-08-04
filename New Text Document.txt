@@ -1,0 +1,1 @@
+sudo bash /var/www/html/iptv/setup_restream.sh

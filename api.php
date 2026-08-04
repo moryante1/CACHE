@@ -167,10 +167,27 @@ function apiCachedResponse(array $data, int $ttl = 60)
     $body = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     $etag = '"' . md5((string) $body) . '"';
 
+    /* ⚠ كان هنا: Cache-Control: public, max-age=$ttl, stale-while-revalidate=30
+       وهو يعطّل التحديث اللحظي كلّه. السبب أن كاش المتصفح يُفهرَس بالرابط
+       وحده، فحين يكتشف مستطلع content_version تغيّراً ويستدعي scInvalidate()
+       — وهي تُفرغ كاش الجافاسكربت فقط — ثم يعيد الطلب على الرابط نفسه،
+       يردّ المتصفح من ذاكرته دون أن يمسّ الشبكة. النتيجة: الواجهة تُعاد
+       رسمها بنفس البيانات القديمة، فيبدو أن التعديل لم يصل (حتى ٣ دقائق،
+       وأطول مع stale-while-revalidate).
+
+       والبديل هنا ليس إلغاء الكاش: no-cache تعني «خزّن لكن تحقّق دائماً».
+       مع ETag الموجود أصلاً يرسل المتصفح If-None-Match ويستقبل 304 بلا
+       جسم — أي بضع مئات من البايتات بدل الحمولة كاملة — ويبقى كاش
+       الجافاسكربت (١٠ دقائق) هو من يمتصّ الطلبات المتكرّرة. فنحتفظ
+       بالتوفير ونضمن الصحّة معاً.
+
+       و private بدل public مقصودة: هذه الاستجابات تحمل روابط بثّ موقّعة،
+       ولا فائدة من تخزينها في وسيط مشترك — بينما ضررُ أن يخدم وسيطٌ نسخةً
+       قديمة لكل الزوّار حقيقي. */
     if (!headers_sent()) {
         header('ETag: ' . $etag);
         if ($ttl > 0) {
-            header('Cache-Control: public, max-age=' . $ttl . ', stale-while-revalidate=30');
+            header('Cache-Control: private, no-cache, must-revalidate');
         } else {
             header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         }
@@ -1156,7 +1173,16 @@ function getEpisodes()
                     $hasActive = false;
                 }
 
-                $sql   = 'SELECT id, name FROM series WHERE id = ?'
+                /* ⚠ poster_url مطلوب هنا وليس زائداً.
+                   كان الاستعلام يجلب id و name فقط. وعند فتح مسلسل
+                   بالنقر يصل البوستر إلى الواجهة كوسيط من البطاقة
+                   المضغوطة، فيظهر. أمّا عند تحديث الصفحة فلا بطاقة
+                   ولا وسيط: تستعيد الواجهة الحالة من الهاش وتسأل هذه
+                   النقطة، فيعود البوستر فارغاً — ويسقط معه احتياطي
+                   صور الحلقات (renderEpisodes يستعمل بوستر المسلسل
+                   حين لا تملك الحلقة صورة)، فتظهر البطاقات سوداء.
+                   عطلٌ يظهر بعد التحديث فقط، وهذا ما جعله محيّراً. */
+                $sql   = 'SELECT id, name, poster_url FROM series WHERE id = ?'
                        . ($hasActive ? ' AND is_active = 1' : '');
                 $check = $pdo->prepare($sql);
                 $check->execute([$series_id]);
@@ -1174,7 +1200,11 @@ function getEpisodes()
                 ");
                 $stmt->execute([$series_id]);
 
-                return ['name' => $sr['name'], 'episodes' => $stmt->fetchAll()];
+                return [
+                    'name'     => $sr['name'],
+                    'poster'   => (string) ($sr['poster_url'] ?? ''),
+                    'episodes' => $stmt->fetchAll(),
+                ];
             })();
 
             /* نتيجة ناجحة → كاش عادي (دقيقتان).
@@ -1199,6 +1229,9 @@ function getEpisodes()
             'success'     => true,
             'series_id'   => $series_id,
             'series_name' => $payload['name'],
+            /* ?? '' مقصود: الحمولات المخزّنة قبل هذا التعديل لا تحمل
+               المفتاح، فبدونه ينهار الطلب حتى تنتهي مهلة الكاش. */
+            'series_poster' => (string) ($payload['poster'] ?? ''),
             'count'       => count($payload['episodes']),
             'episodes'    => $payload['episodes'],
         ], 120);

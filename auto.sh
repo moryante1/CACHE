@@ -19,7 +19,26 @@
 set -uo pipefail
 
 APP_DIR="${APP_DIR:-/var/www/html/iptv}"
-ENV_FILE="$APP_DIR/.env"
+
+# ══════════════════════════════════════════════════════════════
+#  أي ملف إعدادات هو المؤثّر فعلاً؟
+# ──────────────────────────────────────────────────────────────
+#  بعد نقل الأسرار إلى /etc/shashety/env صار ذلك الملف أعلى أولويةً
+#  من ‎$APP_DIR/.env‎ عند قراءة الكود (راجع دالة env في core/config.php).
+#
+#  ولو بقي هذا السكربت يكتب في ‎.env‎ وحده لحدث أسوأ نوع من الأعطال:
+#  يبلّغ عن نجاحه — «وُلِّد WS_SECRET» — بينما يقرأ التطبيق قيمة أخرى
+#  من الملف الخارجي. إعدادٌ يبدو مضبوطاً وهو غير مقروء إطلاقاً.
+#
+#  لذلك نكتب حيث يقرأ التطبيق، لا حيث اعتدنا أن نكتب.
+# ══════════════════════════════════════════════════════════════
+ENV_ETC="/etc/shashety/env"
+if [[ -f "$ENV_ETC" ]]; then
+    ENV_FILE="$ENV_ETC"
+else
+    ENV_FILE="$APP_DIR/.env"
+fi
+
 VHOST="/etc/apache2/sites-available/000-default.conf"
 
 DO_SSH=0
@@ -72,6 +91,17 @@ getenv() {
 # ══════════════════════════════════════════════════════════════
 secure_env() {
     [[ -f "$ENV_FILE" ]] || return 0
+
+    # خارج جذر الويب: المالك root والمجموعة www-data — يقرأه الخادم
+    # ولا يكتبه. لو صار مملوكاً لـwww-data فأي ثغرة تسمح بالكتابة
+    # تسمح بتغيير بيانات الاتصال نفسها.
+    if [[ "$ENV_FILE" == /etc/* ]]; then
+        if chown root:www-data "$ENV_FILE" 2>/dev/null; then
+            chmod 640 "$ENV_FILE"
+            return 0
+        fi
+    fi
+
     if chown www-data:www-data "$ENV_FILE" 2>/dev/null; then
         chmod 640 "$ENV_FILE"
         return 0
@@ -89,12 +119,22 @@ setenv() {
     else
         printf '%s=%s\n' "$k" "$v" >> "$ENV_FILE"
     fi
+    # 🔴 ضروري ولا يجوز حذفه: awk يُنشئ ملفاً مؤقتاً جديداً يملكه root،
+    #    و mv ينقل ملكيّته معه — فتضيع ملكية www-data بعد كل كتابة،
+    #    ويصبح الملف غير مقروء لخادم الويب. وهو نفس العطل الذي أسقط
+    #    الموقع سابقاً، لكن من باب خلفي: لا أحد يغيّر الصلاحيات هنا،
+    #    بل تتغيّر بنفسها كأثر جانبي لتحرير سطر واحد.
+    secure_env
 }
 
 
 # ══════════════════════════════════════════════════════════════
-head_ "١) ملف .env"
+head_ "١) ملف الإعدادات"
 # ══════════════════════════════════════════════════════════════
+# نطبع المسار صراحةً: بعد نقل الأسرار إلى /etc قد لا يكون حيث تتوقّع،
+# ورسالة «تمّ» عن ملف خاطئ أسوأ من رسالة فشل.
+inf_path(){ printf '  %s•%s المسار: %s\n' "$C" "$N" "$ENV_FILE"; }
+inf_path
 if [[ -f "$ENV_FILE" ]]; then
     skip "موجود — لن يُستبدل"
 else
@@ -154,138 +194,71 @@ head_ "٢) كلمة مرور قاعدة البيانات"
 # ══════════════════════════════════════════════════════════════
 DB_USER="$(getenv DB_USER)"; DB_USER="${DB_USER:-iptv_user}"
 DB_NAME="$(getenv DB_NAME)"; DB_NAME="${DB_NAME:-iptv_db}"
-CUR_PASS="$(getenv DB_PASS)"
 
 # ══════════════════════════════════════════════════════════════
-#  🔴 درس من عطل حقيقي — يُقرأ قبل التعديل
+#  🔴 درس من عطل حقيقي — سببُ وجود هذا التفويض
 # ──────────────────────────────────────────────────────────────
-#  النسخة السابقة من هذا السكربت غيّرت كلمة مرور iptv_user
-#  وحدّثت ملف .env الخاص بمشروع iptv فقط — ثم توقّف مشروع act
-#  بخطأ "Database connection failed"، لأن كلمته مكتوبة داخل
-#  /var/www/html/act/config.php ولم يعرف السكربت بوجودها.
+#  كان هنا ١٣٦ سطراً تُكرّر ما يفعله fix_db_password.sh: تولّد كلمة،
+#  وتغيّرها في MySQL، وتبحث عن المشاريع الأخرى التي تشاركها، وتحدّثها.
 #
-#  الخطأ الجذري: غيّرنا بيانات اعتماد مستخدم مشترك دون أن نسأل
-#  أولاً "من يستخدمه؟". الفحص يجب أن يسبق التغيير لا أن يتبعه.
+#  لكن النسختين لم تتطابقا. النسخة هنا كانت تبحث عن الملفات المرتبطة
+#  بـ grep على **كلمة المرور الحالية**:
 #
-#  الحل هنا: نمسح جذر الويب كله بحثاً عن أي ملف يحمل كلمة المرور
-#  الحالية أو اسم المستخدم، نعرضها عليك، ثم نحدّثها جميعاً بعد
-#  نجاح التغيير — ونتراجع عنها كلها إن فشل أي شيء.
+#        grep -rlF "$CUR_PASS" "$WEBROOT" --include='*.php'
+#
+#  وهذا أعمى عن أي ملف انفصل سابقاً ويحمل كلمة ثالثة — وهي بالضبط
+#  حالة /var/www/html/act/config.php التي عطّلت الموقع مرّتين. أُصلح
+#  الأمر في fix_db_password.sh (يبحث باسم المستخدم لا بالكلمة) ولم
+#  يُصلح هنا.
+#
+#  منطقٌ واحد في موضعين، أحدهما خاطئ: العطل يعود من الموضع المنسيّ
+#  كلما ظننّاه انتهى. فحذفنا النسخة الأضعف بدل ترقيعها.
+#
+#  ولماذا التفويض آمن: السكربت لا يغيّر شيئاً إن كانت الكلمة تعمل
+#  وطولها ١٢ محرفاً فأكثر — يخرج بـ0 معلناً «لا حاجة للتغيير». فلا
+#  يدور سرّاً في كل تشغيل، ولا يكسر مشروعاً يعمل.
 # ══════════════════════════════════════════════════════════════
-
-WEBROOT="$(dirname "$APP_DIR")"
-declare -a LINKED_FILES=()
-
-# هل سنغيّر الكلمة أصلاً؟ لا فائدة من مسح القرص إن كانت قوية.
-NEED_CHANGE=0
-[[ "$CUR_PASS" == "123456" || ${#CUR_PASS} -lt 12 ]] && NEED_CHANGE=1
-
-if [[ -n "$CUR_PASS" && $NEED_CHANGE -eq 1 ]]; then
-    while IFS= read -r ff; do
-        [[ -n "$ff" ]] && LINKED_FILES+=("$ff")
-    done < <(
-        grep -rlF "$CUR_PASS" "$WEBROOT" --include='*.php' 2>/dev/null \
-          | grep -v "^${APP_DIR}/" \
-          | grep -vE '/(node_modules|_backup_before_fix|Xp|xp|vendor)/' \
-          | sort -u
-    )
-fi
-
-if [[ ${#LINKED_FILES[@]} -gt 0 ]]; then
-    warn "مشاريع أخرى تستخدم نفس كلمة المرور — ستُحدَّث تلقائياً:"
-    for ff in "${LINKED_FILES[@]}"; do printf '        %s\n' "$ff"; done
-elif [[ $NEED_CHANGE -eq 1 ]]; then
-    skip "لا مشاريع أخرى تشارك هذه الكلمة"
-fi
-
-if [[ "$CUR_PASS" != "123456" && ${#CUR_PASS} -ge 12 ]]; then
-    skip "الكلمة قوية بالفعل — لا تغيير"
-elif ! MYSQL_PWD="$CUR_PASS" mysql -u "$DB_USER" -e "SELECT 1" "$DB_NAME" >/dev/null 2>&1; then
-    bad "تعذّر الاتصال بالكلمة الموجودة في .env — تخطّي"
-    warn "صحّح DB_PASS في .env ثم أعد التشغيل"
+if [[ ! -f "$APP_DIR/fix_db_password.sh" ]]; then
+    warn "fix_db_password.sh غير مرفوع — تخطّي ضبط كلمة المرور"
     FAILED=1
+
+elif ! command -v mysql >/dev/null 2>&1; then
+    warn "عميل mysql غير مثبّت — تخطّي"
+
 else
-    NEWP="$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-24)"
-    cp -p "$ENV_FILE" "$ENV_FILE.bak.$(date +%s)"
+    # نمرّر ENV_FILE و APP_DIR كي يعمل السكربت على الملف المؤثّر نفسه
+    # الذي يعمل عليه auto.sh — سواءٌ .env أو /etc/shashety/env.
+    OUT_FD="$(APP_DIR="$APP_DIR" bash "$APP_DIR/fix_db_password.sh" 2>&1)"; RC_FD=$?
 
-    ALTERED=0
-    for H in localhost 127.0.0.1 '%'; do
-        MYSQL_PWD="$CUR_PASS" mysql -u "$DB_USER" \
-            -e "ALTER USER '${DB_USER}'@'${H}' IDENTIFIED BY '${NEWP}';" >/dev/null 2>&1 && ALTERED=1
-    done
+    if [[ $RC_FD -eq 0 ]]; then
+        # ⚠ نقرأ سطر العلامة ‎__NEWPASS__=‎ لا النصّ المعروض.
+        #   المحاولة الأولى حلّلت الرسائل الملوّنة، وكان فيها خطآن:
+        #   عبارة «الكلمة الجديدة» ترد أيضاً في رسالة حالة عادية
+        #   («MySQL يقبل الكلمة الجديدة») فتُلتقط بدل الكلمة، ورموز
+        #   الألوان تكسر أي مطابقة على شكل الكلمة نفسها. والأسوأ أن
+        #   الفشل هنا صامت: يُطبع سطر خاطئ أو لا يُطبع شيء، وتظنّ أن
+        #   الكلمة لم تتغيّر بينما تغيّرت فعلاً.
+        NEWPASS_FD="$(grep -m1 '^__NEWPASS__=' <<<"$OUT_FD" | cut -d= -f2-)"
 
-    if [[ $ALTERED -eq 0 ]]; then
-        bad "لا صلاحية لتغيير الكلمة — نفّذها بحساب root:"
-        printf "      mysql -u root -e \"ALTER USER '%s'@'localhost' IDENTIFIED BY 'كلمتك';\"\n" "$DB_USER"
-        FAILED=1
-    else
-        MYSQL_PWD="$NEWP" mysql -u "$DB_USER" -e "FLUSH PRIVILEGES;" >/dev/null 2>&1
-        setenv DB_PASS "$NEWP"
-        secure_env
-
-        if MYSQL_PWD="$NEWP" mysql -u "$DB_USER" -e "SELECT 1" "$DB_NAME" >/dev/null 2>&1; then
-            ok "غُيِّرت وتحقّقت"
-
-            # ── تحديث المشاريع الأخرى التي تشارك نفس الكلمة ──
-            UPD_OK=1
-            for ff in "${LINKED_FILES[@]}"; do
-                cp -p "$ff" "${ff}.bak.$(date +%s)" 2>/dev/null
-
-                # نستخدم python بدل sed: يتعامل مع أي رمز خاص في الكلمة
-                # (مثل & و / و \) التي تكسر sed بصمت وتُفسد الملف.
-                if python3 - "$ff" "$CUR_PASS" "$NEWP" <<'PYEOF'
-import io, sys
-path, old, new = sys.argv[1], sys.argv[2], sys.argv[3]
-try:
-    s = io.open(path, encoding='utf-8', errors='surrogateescape').read()
-    if old not in s:
-        sys.exit(2)
-    io.open(path, 'w', encoding='utf-8', errors='surrogateescape').write(s.replace(old, new))
-except Exception:
-    sys.exit(1)
-PYEOF
-                then
-                    ok "حُدِّث $(basename "$(dirname "$ff")")/$(basename "$ff")"
-                else
-                    bad "تعذّر تحديث $ff"
-                    UPD_OK=0
-                fi
-            done
-
-            if [[ $UPD_OK -eq 0 ]]; then
-                warn "بعض المشاريع لم تُحدَّث — قد تتوقف حتى تصحّحها يدوياً"
-                FAILED=1
-            fi
-
-            printf '\n  %s%s كلمة المرور الجديدة — احفظها الآن:%s\n' "$B" "$G" "$N"
-            printf '  %s%s%s\n\n' "$G" "$NEWP" "$N"
-
+        if [[ -z "$NEWPASS_FD" ]]; then
+            skip "الكلمة قوية ومتزامنة — لا تغيير"
         else
-            # ── تراجع كامل: MySQL + .env + كل المشاريع المرتبطة ──
-            for H in localhost 127.0.0.1 '%'; do
-                MYSQL_PWD="$NEWP" mysql -u "$DB_USER" \
-                    -e "ALTER USER '${DB_USER}'@'${H}' IDENTIFIED BY '${CUR_PASS}';" >/dev/null 2>&1
-            done
-            setenv DB_PASS "$CUR_PASS"
-            for ff in "${LINKED_FILES[@]}"; do
-                python3 - "$ff" "$NEWP" "$CUR_PASS" <<'PYEOF' || true
-import io, sys
-path, old, new = sys.argv[1], sys.argv[2], sys.argv[3]
-try:
-    s = io.open(path, encoding='utf-8', errors='surrogateescape').read()
-    if old in s:
-        io.open(path, 'w', encoding='utf-8', errors='surrogateescape').write(s.replace(old, new))
-except Exception:
-    pass
-PYEOF
-            done
-            bad "فشل التحقق — تم التراجع الكامل. كل شيء يعمل كما كان."
-            FAILED=1
+            ok "ضُبطت كلمة المرور وزُومنت مع كل المشاريع"
+            printf '\n  %s%s كلمة المرور الجديدة — احفظها الآن:%s\n' "$B" "$G" "$N"
+            printf '  %s%s%s\n\n' "$G" "$NEWPASS_FD" "$N"
         fi
+
+        # المشاريع الأخرى التي لمسها السكربت — تُعرض لتعرف ما تغيّر
+        grep -E 'حُدّث|حُدِّث' <<<"$OUT_FD" | sed 's/^/     /' | head -6
+
+        # تحذيرات لا ترفع رمز الخروج لكنها تستحقّ الظهور
+        grep -E '⚠' <<<"$OUT_FD" | sed 's/^/     /' | head -4
+    else
+        bad "فشل ضبط كلمة المرور — التفصيل:"
+        sed 's/^/     /' <<<"$OUT_FD" | tail -12
+        FAILED=1
     fi
 fi
-
-
-# ══════════════════════════════════════════════════════════════
 head_ "٣) تقييد صلاحيات MySQL"
 # ══════════════════════════════════════════════════════════════
 DBP="$(getenv DB_PASS)"
@@ -392,9 +365,36 @@ else
 
     sleep 2
     WS_HEALTH="$(curl -s --max-time 3 http://127.0.0.1:3000/health 2>/dev/null || true)"
-    if [[ "$WS_HEALTH" == *'"status":"ok"'* ]]; then
-        ok "يعمل ومحمي بمفتاح"
+
+    # ══════════════════════════════════════════════════════════════
+    #  🔴 لماذا فحصان لا فحص واحد
+    # ──────────────────────────────────────────────────────────────
+    #  كان الشرط هنا فحص الصحّة المحلي وحده: تستجيب الخدمة على
+    #  127.0.0.1:3000 ⇒ يُرفع العلم إلى 1. لكن هذين شيئان مختلفان.
+    #
+    #  الخدمة تستمع محلياً، بينما المتصفح يطلب
+    #        /iptv/socket.io/socket.io.js
+    #  من Apache. ولا شيء في هذا السكربت يضبط وسيطاً لذلك المسار،
+    #  فكانت النتيجة 404 في كل صفحة: العلم يقول «مفعّل» والطريق
+    #  مقطوع. تأكيدٌ مبنيّ على استنتاج بدل اختبار مباشر.
+    #
+    #  الآن نختبر ما يختبره المتصفح فعلاً — الرابط نفسه عبر Apache.
+    #  ولا نرفع العلم إلا إذا وصل الملف. أن تُترك الميزة معطّلة
+    #  وتعمل عبر الاستطلاع خيرٌ من أن تُعلَن مفعّلة وهي لا تعمل.
+    # ══════════════════════════════════════════════════════════════
+    APP_BASE_WS="$(basename "$APP_DIR")"
+    WS_CLIENT_CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 \
+        "http://localhost/${APP_BASE_WS}/socket.io/socket.io.js" 2>/dev/null || echo 000)"
+
+    if [[ "$WS_HEALTH" == *'"status":"ok"'* && "$WS_CLIENT_CODE" == "200" ]]; then
+        ok "يعمل ومحمي بمفتاح · والمتصفح يصل إلى socket.io.js"
         setenv ENABLE_WEBSOCKET 1
+    elif [[ "$WS_HEALTH" == *'"status":"ok"'* ]]; then
+        warn "الخدمة تعمل لكن /${APP_BASE_WS}/socket.io/ غير مخدوم (رمز $WS_CLIENT_CODE)"
+        echo "        العلم يبقى 0 — التحديث اللحظي يعمل عبر الاستطلاع بلا نقص."
+        echo "        لتفعيل WebSocket فعلاً يلزم وسيط في Apache:"
+        echo "          ProxyPass /${APP_BASE_WS}/socket.io/ http://127.0.0.1:3000/socket.io/"
+        setenv ENABLE_WEBSOCKET 0
     else
         warn "لا يستجيب — الميزة اختيارية، أُبقيت معطّلة"
         setenv ENABLE_WEBSOCKET 0
@@ -708,6 +708,47 @@ if [[ -f "$APP_DIR/setup_restream.sh" ]]; then
     fi
 else
     skip "setup_restream.sh غير مرفوع"
+fi
+
+
+# ══════════════════════════════════════════════════════════════
+head_ "١٥) تثبيت الإعدادات خارج مجلد المشروع"
+# ══════════════════════════════════════════════════════════════
+# آخر خطوة عمداً: لا تُنقل الأسرار إلى موضعها الدائم إلا بعد أن تكون
+# صحيحة وعاملة (الخطوة ٢ ضبطت كلمة المرور وتحقّقت منها). نقلُ إعداد
+# معطّل يثبّت العطل في مكان أصعب في الوصول إليه.
+#
+# لماذا هذه الخطوة أصلاً: ‎.env‎ داخل المجلد المرفوع يعني أن كل رفعة
+# إمّا تستبدله بنسختك المحلية أو تكسر ملكيّته — وكلاهما أوقع الموقع
+# فعلاً أكثر من مرّة. خارج المجلد لا يصله الرفع.
+WEBUSER="www-data"; id -u "$WEBUSER" >/dev/null 2>&1 || WEBUSER="apache"
+
+if [[ ! -f "$APP_DIR/install_env.sh" ]]; then
+    skip "install_env.sh غير مرفوع"
+
+elif [[ -f "$ENV_ETC" ]] && sudo -u "$WEBUSER" test -r "$ENV_ETC" 2>/dev/null; then
+    ok "الإعدادات في $ENV_ETC ويقرأها $WEBUSER"
+    # وجود ‎.env‎ إلى جانبها لا يكسر شيئاً، لكنه يضلّل: من يحرّره يظنّ
+    # أنه يغيّر الإعداد المؤثّر بينما الأولوية للملف الخارجي.
+    [[ -f "$APP_DIR/.env" ]] \
+        && warn "‎.env‎ ما يزال في المشروع — الأولوية لـ$ENV_ETC، فلا تحرّره"
+
+else
+    # يشمل حالتين: لم يُثبَّت بعد، أو مثبّت لكن لا يقرأه خادم الويب.
+    # في كلتيهما التشغيل هو الإجراء الصحيح — والسكربت آمن للتكرار
+    # ولا يسمح لنسخة معطّلة بأن تدهس إعداداً عاملاً.
+    OUT_IE="$(bash "$APP_DIR/install_env.sh" 2>&1)"; RC_IE=$?
+    if [[ $RC_IE -eq 0 ]]; then
+        ok "الإعدادات مثبّتة في $ENV_ETC"
+        # من هنا فصاعداً صار الملف الخارجي هو المؤثّر
+        ENV_FILE="$ENV_ETC"
+    else
+        # لا نكتم الخرج: الفشل هنا يعني بقاء الأسرار داخل المجلد
+        # المرفوع، وهو بالضبط ما جئنا نمنعه — فيجب أن يُرى السبب.
+        warn "تعذّر التثبيت — التفصيل:"
+        sed 's/^/        /' <<<"$OUT_IE" | tail -8
+        printf '        أعد يدوياً: sudo bash %s/install_env.sh\n' "$APP_DIR"
+    fi
 fi
 
 

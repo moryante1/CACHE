@@ -155,6 +155,22 @@
         </button>
       </div>
 
+      <?php /* حدّ القنوات المتزامنة — يُضبط من هنا بلا طرفية ولا sudo */ ?>
+      <div class="sb-row" style="align-items:center;gap:10px">
+        <div style="width:48px;text-align:center;color:#4CC9F0;font-size:1.15rem"><i class="fas fa-sliders-h"></i></div>
+        <div style="flex:1">
+          <div class="sb-row-t"><?= $t["restream_limit_title"] ?? "حدّ القنوات المتزامنة" ?></div>
+          <div class="sb-row-d" style="color:var(--t3,#8a8a94)">
+            <?= $t["restream_limit_hint"] ?? "كل قناة ≈ ٥ ميغابت/ث من نطاقك. اختر بحسب نطاقك لا المعالج." ?>
+          </div>
+        </div>
+        <input type="number" id="rsLimitInput" min="1" max="500" step="1"
+               style="width:80px;text-align:center;padding:8px;border-radius:8px;border:1px solid var(--br,#2a2a2a);background:var(--bg,#0f0f10);color:var(--t1,#fff);font-weight:700">
+        <button class="sb-btn" onclick="rsSaveLimit()" id="rsLimitSaveBtn">
+          <i class="fas fa-check"></i><?= $t["save"] ?? "حفظ" ?>
+        </button>
+      </div>
+
       <div class="sb-row" id="rsLiveRow" style="display:none">
         <div style="width:48px;text-align:center;color:#00D084;font-size:1.3rem"><i class="fas fa-broadcast-tower"></i></div>
         <div style="flex:1">

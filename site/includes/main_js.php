@@ -1,6 +1,18 @@
 <script>
 'use strict';
 
+/* ══ حالة وسيط إعادة البثّ — من مفتاح لوحة الإدارة مباشرةً ══
+   مقروءة من إعداد restream_enabled في قاعدة البيانات (نفس ما يضبطه
+   المفتاح في اللوحة). المتصفح يعرفها فوراً، فحين يكون المفتاح مطفأً
+   لا يحاول المشغّل التحويل عبر الخادم إطلاقاً — تعمل القنوات مباشرةً
+   ومن يفشل منها يُظهر سبباً واضحاً بلا جولة مهدورة إلى restream.php.
+   الافتراضي عند غياب الإعداد: مفعّل (كما يفترض بقية النظام). */
+window.__shsRestreamOn = <?php
+    $__rs = isset($settings['restream_enabled'])
+        ? (string)$settings['restream_enabled'] : '1';
+    echo ($__rs === '0' || strtolower($__rs) === 'false' || $__rs === 'off') ? 'false' : 'true';
+?>;
+
 /* ════ SMART CACHE ════ */
 (function(){}());
 
@@ -332,7 +344,7 @@ function buildFavPanel(){
     const ic=item.icon_url?`<img class="m3u-item-logo" src="${esc(item.icon_url)}" loading="lazy">`:`<div class="m3u-item-logo" style="display:flex;align-items:center;justify-content:center;color:#666;font-size:1.2rem">${item.ftype==='series'?'🎬':'📺'}</div>`;
     const del=`<button onclick="event.stopPropagation();toggleMyFav('${item.id}','','${item.ftype}')" style="background:rgba(229,9,20,.15);border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:#ff4d57;cursor:pointer;border:none">🗑</button>`;
     d.innerHTML=`${ic}<div style="flex:1;min-width:0"><div class="m3u-item-name">${esc(item.name)}</div><div class="m3u-item-group">${item.ftype==='channels'?'بث مباشر':'مسلسلات وأفلام'}</div></div>${del}`;
-    d.onclick=()=>{if(item.ftype==='channels')openPlayerChannel({id:item.id,name:item.name,stream_url:item.stream_url,subtitle_url:item.subtitle_url});else openSeriesEpisodes(item.id,item.name,item.poster_url||item.img||'');};
+    d.onclick=()=>{if(item.ftype==='channels')openPlayerChannel({id:item.id,name:item.name,stream_url:item.stream_url,subtitle_url:item.subtitle_url,quality:item.quality||''});else openSeriesEpisodes(item.id,item.name,item.poster_url||item.img||'');};
     b.appendChild(d);
   });
 }
@@ -1078,7 +1090,23 @@ function backFromEpisodesToHome(){
 
 /* ════ SEARCH ════ */
 let searchTimer;
+/* إظهار/إخفاء زرّ المسح تبعاً لوجود نصّ — يُستدعى مع كل إدخال */
+function shsToggleClearBtn(){
+  var b=document.getElementById('searchClearBtn'),i=document.getElementById('searchInput');
+  if(b&&i) b.style.display = i.value.length ? 'inline-flex' : 'none';
+}
+
+/* مسح البحث بقرار المستخدم لا تلقائياً — يُفرّغ الحقل ويعيد الرئيسية
+   ويُعيد التركيز ليكتب من جديد بلا نقرة إضافية. */
+function clearSearchBox(){
+  var i=document.getElementById('searchInput');
+  if(i){ i.value=''; try{i.focus();}catch(e){} }
+  shsToggleClearBtn();
+  clearSearchAndGoHome();
+}
+
 function handleSearch(){
+  shsToggleClearBtn();
   clearTimeout(searchTimer);
   searchTimer=setTimeout(async ()=>{
     const q=document.getElementById('searchInput').value.trim().toLowerCase();
@@ -1311,6 +1339,7 @@ async function shsRestoreFromHash(){
       if(inp){
         inp.value = st.q;
         _shsRestoring = false;      // نسمح للبحث بكتابة حالته
+        if(typeof shsToggleClearBtn==='function') shsToggleClearBtn();
         handleSearch();
         return true;
       }
@@ -1886,8 +1915,44 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 
 /* ════ OPEN PLAYER ════ */
+/* تحويل تسمية الجودة في اللوحة إلى ارتفاع بالبكسل.
+   نتسامح مع الصياغات كلّها لأن الحقل نصّي حرّ يكتبه بشر:
+   «HD 720» و«720p» و«1080» و«FHD» و«4K» كلّها مقبولة.
+   ما لا يُفهم يُعامل كـ0 أي «تلقائي» — الغموض لا يبرّر تخميناً. */
+function qualityToHeight(q){
+  if(!q) return 0;
+  var s=String(q).toLowerCase().trim();
+  if(!s || s.indexOf('auto')>=0 || s.indexOf('تلقائ')>=0) return 0;
+  if(s.indexOf('4k')>=0 || s.indexOf('2160')>=0) return 2160;
+  if(s.indexOf('1440')>=0 || s.indexOf('2k')>=0) return 1440;
+  if(s.indexOf('1080')>=0 || s.indexOf('fhd')>=0 || s.indexOf('full hd')>=0) return 1080;
+  if(s.indexOf('720')>=0) return 720;
+  if(s.indexOf('480')>=0) return 480;
+  if(s.indexOf('360')>=0) return 360;
+  if(s.indexOf('240')>=0) return 240;
+  var m=s.match(/(\d{3,4})/);
+  var n=m?parseInt(m[1],10):0;
+  return (n>=144 && n<=4320) ? n : 0;
+}
+
 function openPlayerChannel(ch){
   try{sessionStorage.setItem('shs_restore',JSON.stringify({type:'channel',ch:ch}));}catch(e){}
+  /* الجودة المختارة في اللوحة — يقرأها MANIFEST_PARSED عند بدء التشغيل.
+     ⚠ لا نكتفي بـ ch.quality: بعض مواضع الاستدعاء تعيد بناء كائن القناة
+     بحقول مختارة (id, name, stream_url, subtitle_url) فتسقط الجودة في
+     الطريق — فتعمل الميزة حين تفتح القناة من مكان وتصمت حين تفتحها من
+     مكان آخر، وهو أسوأ من ألّا تعمل إطلاقاً لأنه يبدو عشوائياً.
+     فنرجع إلى المصدر الكامل في App.allContent عند غيابها. */
+  var _q = (ch && ch.quality) ? String(ch.quality) : '';
+  if(!_q && ch && ch.id){
+    try{
+      var _src=(App.allContent||[]).find(function(x){
+        return String(x.id)===String(ch.id) && (x.ftype==='channels' || x._ftype==='channels' || x.stream_url);
+      });
+      if(_src && _src.quality) _q=String(_src.quality);
+    }catch(e){}
+  }
+  PL.prefQuality = _q;
   /* لا نكتب الـhash هنا: pushState لم يُنفَّذ بعد (السطر ~3449)، فالكتابة الآن
      تلوّث إدخالة الشاشة السابقة (الرئيسية) بـ #ch=..، فيعود التحديث للمشغّل
      بعد الخروج منه. نؤجّلها لتقع على إدخالة المشغّل نفسها. */
@@ -1897,6 +1962,9 @@ function openPlayerChannel(ch){
   document.getElementById('epPanelBtn').style.display='none';
   document.getElementById('m3uPanelBtn').style.display='none';
   PL.backupUrl=ch.backup_url||'';PL.usedBackup=false;
+  // مرجع القناة للوسيط — يُستعمل إن فشل بثّ TS بسبب CORS من المصدر
+  PL.streamRef=(ch&&ch.id)?{q:'ch',id:ch.id}:null;
+  PL._tsRestreamTried=false;
   const fmt=fmtLabel(ch.stream_url||'');const isLive=isLiveFormat(ch.stream_url||'');
   document.getElementById('pBadgeLabel').textContent=isLive?'LIVE':'VOD';
   document.getElementById('pChannelName').textContent=ch.name;
@@ -2310,6 +2378,51 @@ function _hardReloadStream(url){
   }, wait);
 }
 
+/* تمرير قناة/حلقة عبر وسيط إعادة البثّ حين يفشل التشغيل المباشر.
+   الوسيط يشغّل ffmpeg يعيد تغليف المصدر كـ HLS محليّ على أصلنا،
+   فينتفي قيد CORS (المقاطع تأتي من Apache) وقيد TS (الخرج m3u8).
+   يعالج حالة 202 «قيد التجهيز» بإعادة السؤال بدل حجز الخادم. */
+function _tsStopPing(){ if(PL._tsPing){ clearInterval(PL._tsPing); PL._tsPing=null; } }
+
+function _tsViaRestream(sref, subUrl, tries){
+  if(!sref || !sref.id) { toast('خطأ في تشغيل بثّ TS'); showBuf(false); return; }
+  fetch('restream.php?'+sref.q+'='+sref.id, {credentials:'same-origin'})
+    .then(function(r){ return r.json().then(function(j){ return {s:r.status, j:j||{}}; }); })
+    .then(function(res){
+      var j=res.j;
+      if(res.s===202 && j.error==='starting'){
+        if((tries||0)<8){ setTimeout(function(){ _tsViaRestream(sref, subUrl, (tries||0)+1); }, (j.retry_after||2)*1000); }
+        else { showBuf(false); toast('تعذّر تجهيز البثّ عبر الخادم'); }
+        return;
+      }
+      if(!j.success || !j.url){
+        showBuf(false);
+        if(j.error==='restream_disabled') toast('إعادة البثّ غير مفعّلة — فعّلها من لوحة الإدارة');
+        else if(j.error==='vod_quota')    toast('مساحة التحويل ممتلئة — أعد المحاولة لاحقاً');
+        else toast('تعذّر التشغيل عبر الخادم');
+        return;
+      }
+      // رابط m3u8 محليّ — يمرّ عبر مسار hls في initStream فينحلّ كل شيء
+      try{ initStream(j.url, subUrl||''); }catch(_){ showBuf(false); toast('خطأ في تشغيل بثّ TS'); return; }
+      // ══ نبضة إبقاء ══ بدونها يُنهي المنظّفُ الدوريّ العمليةَ بعد دقيقة
+      // من آخر طلب، لأن المقاطع تصل من Apache لا من PHP فلا نشاط يُرى.
+      _tsStopPing();
+      PL._tsPing=setInterval(function(){
+        fetch('restream.php?'+sref.q+'='+sref.id+'&ping=1',{credentials:'same-origin'})
+          .then(function(pr){
+            // 410 = ماتت العملية (سقط المصدر أو أنهاها المنظّف) — نعيد التشغيل مرّة
+            if(pr.status===410 && (PL._tsRevives||0)<3){
+              PL._tsRevives=(PL._tsRevives||0)+1;
+              _tsStopPing();
+              toast('انقطع البثّ — إعادة التشغيل…');
+              _tsViaRestream(sref, subUrl, 0);
+            }
+          }).catch(function(){});
+      },25000);
+    })
+    .catch(function(){ showBuf(false); toast('تعذّر الاتصال بخادم البثّ'); });
+}
+
 function initStream(url,subUrl){
   // نتذكّر الرابط الحالي حتى يعرف الاسترداد التلقائي ما يعيد تشغيله
   _hardReloadUrl=url; _hardReloadSub=subUrl||'';
@@ -2433,11 +2546,34 @@ function initStream(url,subUrl){
       PL.hls.attachMedia(newV);
       PL.hls.loadSource(url);
       PL.hls.on(Hls.Events.MANIFEST_PARSED,(e,data)=>{
-        /* ══ فرض أعلى جودة متاحة ══
-           نختار أعلى مستوى في القائمة صراحةً، ثم نُعيد التبديل التلقائي
-           كي يبقى على الأعلى ما دامت السرعة تسمح — بلا أي سقف. */
+        /* ══ مطابقة الجودة المختارة في لوحة الإدارة ══
+           حقل «الجودة» في تعديل القناة كان يُحفَظ ويصل إلى المتصفح
+           (الاستعلامات تستخدم ch.* فالعمود ضمنها) — لكن هذا السطر كان
+           يفرض -1 أي «تلقائي» فيمحوه في كل مرّة. فبدا الحقل معطّلاً
+           وهو واصل: إعدادٌ يُحفَظ ولا يُقرأ.
+
+           ⚠ لا نستطيع خلق جودة غير موجودة: المستويات تحدّدها مسارات
+           الـm3u8 نفسها. فنختار **أقرب** مستوى متاح للقيمة المطلوبة
+           بدل رفض غير المطابق تماماً — قناة بـ«HD 720» ومصدر يوفّر
+           1080 و480 تُشغَّل على 480 لأنه الأقرب، لا على الأعلى دائماً.
+
+           والمشاهد يبقى قادراً على اختيار «تلقائي» من قائمة الإعدادات
+           في المشغّل — نضبط نقطة البداية لا نُصادر خياره. */
+        /* نفوّض الضبط إلى player_pro.php — هو مالك حالة الجودة (manualLevel
+           والشارة والقائمة). الضبط المباشر لـ currentLevel من هنا كان
+           يُظهر رقماً في الشارة مخالفاً للواقع، ويضيع فور استئناف hls.js
+           للتبديل التلقائي. أمّا ppSetQualityByHeight فتطفئ التلقائي
+           وتثبّت المستوى وتحدّث الشارة معاً. */
         try{
-          PL.hls.nextLevel = -1;
+          var _want = (typeof qualityToHeight==='function') ? qualityToHeight(PL.prefQuality) : 0;
+          if(_want > 0 && typeof window.ppSetQualityByHeight==='function'){
+            // player_pro قد يربط مرجعه لـ hls بعد لحظة — نحاول فوراً ثم نعيد
+            if(!window.ppSetQualityByHeight(_want)){
+              setTimeout(function(){ try{ window.ppSetQualityByHeight(_want); }catch(e){} }, 300);
+            }
+          } else {
+            PL.hls.nextLevel = -1;
+          }
         }catch(_){}
         newV.play().catch(()=>{});
       });
@@ -2460,6 +2596,29 @@ function initStream(url,subUrl){
           try{ initStream(PL.backupUrl, _hardReloadSub||''); }catch(_){}
           return;
         }
+        /* ══ خطأ ناتج عن قفزة في الشريط الزمني ══
+           إن جاء الخطأ القاتل خلال أربع ثوانٍ من تقديم/تأخير، فالسبب
+           غالباً أن الهدف وقع على مقطع خارج نافذة الأجزاء. المعالجة
+           الصحيحة هنا استئنافٌ خفيف من موضع آمن، لا إعادة بناء كاملة
+           تُظهر «تعذّر التشغيل» وتفقد مكان المستخدم. ولا نحسبها ضمن
+           عدّاد الأعطال كي لا تتراكم قفزاتٌ بريئة فتُشعل إعادة بناء. */
+        var _sinceSeek = PL._lastSeekAt ? (Date.now()-PL._lastSeekAt) : 1e9;
+        if(_sinceSeek < 4000 &&
+           (d.type===Hls.ErrorTypes.MEDIA_ERROR || d.type===Hls.ErrorTypes.NETWORK_ERROR)){
+          showBuf(true);
+          try{
+            var _sk=newV.seekable;
+            if(_sk && _sk.length){
+              var _hi=_sk.end(_sk.length-1); if(_hi>_sk.start(0)+1)_hi-=1;
+              if(newV.currentTime>_hi) newV.currentTime=_hi;   // ارجع داخل المتاح
+            }
+            PL.hls.startLoad();
+            if(d.type===Hls.ErrorTypes.MEDIA_ERROR) PL.hls.recoverMediaError();
+            newV.play().catch(()=>{});
+          }catch(_){ _hardReloadStream(url); }
+          return;
+        }
+
         if(d.type===Hls.ErrorTypes.NETWORK_ERROR){
           showBuf(true);
           PL._hlsNetRetry++;
@@ -2539,19 +2698,97 @@ function initStream(url,subUrl){
       PL.flv.on(flvjs.Events.ERROR,()=>{toast('خطأ في FLV');showBuf(false);});
     }else{toast('المتصفح لا يدعم FLV');showBuf(false);}
       }else if(fmt==='ts'){
-        // دمج مشغل mpegts لترجمة ملفات TS
+        /* ══ توجيه قناة TS حسب مفتاح اللوحة ══
+           🔴 لماذا هذا الفرع في البداية لا في معالِج الفشل:
+           بعد أن صار التشغيل المباشر (بروكسي + mpegts) ينجح، لم يعد
+           يصل الدور للوسيط أبداً — لأنه كان يُستدعى عند فشل المباشر
+           فقط. فبدا الوسيط «لا يعمل» عند تفعيله، والحقيقة أنه لم
+           يُطلَب. الآن نقرّر أوّلاً بناءً على المفتاح، تماماً كما وصف
+           المستخدم:
+             مفعّل  → تمرّ عبر الوسيط (remux إلى HLS محليّ) دون محاولة
+                     مباشرة. مفيد أيضاً لقنوات صوتها AC3.
+             مطفأ  → تشغيل مباشر عبر بروكسي stream.php. */
+        if(window.__shsRestreamOn===true && PL.streamRef && PL.streamRef.id>0 && !PL._tsRestreamTried){
+          PL._tsRestreamTried=true;
+          showBuf(true);
+          toast('جارٍ التشغيل عبر الخادم…');
+          _tsViaRestream(PL.streamRef, subUrl||'', 0);
+          return;   // لا ندخل مسار mpegts المباشر
+        }
+        /* ══ تشغيل بثّ MPEG-TS مباشرةً (الوسيط مطفأ) ══ */
         if(typeof mpegts!=='undefined'&&mpegts.getFeatureList().mseLivePlayback){
+          PL._tsRetry=0;
+          /* ⚠ سبب فشل «NetworkError / Exception» في المتصفح رغم نجاح البثّ
+             عبر curl على الخادم:
+             ① enableWorker:true يشغّل محمّل mpegts داخل Web Worker يُنشأ
+               من blob:. رؤوس الأمان في الموقع (nosniff وأخواتها) والبيئة
+               تمنع إنشاءه أحياناً، فيُرمى استثناء يظهر كـ NetworkError.
+               الآن بلا Worker — التحميل في الخيط الرئيسي، أبطأ قليلاً
+               وأمتن كثيراً.
+             ② cors:true كان لرابط مصدر مختلف الأصل. البثّ الآن يُمرَّر
+               عبر stream.php على أصل الموقع نفسه، فوضع CORS لا لزوم له
+               بل قد يضيف تعقيداً. أزلناه.
+             ③ type:'mpegts' هو النوع القياسي لبثّ TS الخام. */
           PL.mpegts=mpegts.createPlayer(
-            {type:'mpegts', isLive:true, url},
+            {type:'mpegts', isLive:true, url:url},
             {
-              enableWorker:true,
+              enableWorker:false,
               lazyLoad:false,
-              liveBufferLatencyChasing:true, // تعقب البث الحي لتجنب التقطيع
-              liveBufferLatencyMaxLatency: 2
+              liveBufferLatencyChasing:true,
+              liveBufferLatencyMaxLatency:5.0,
+              liveBufferLatencyMinRemain:1.0,
+              autoCleanupSourceBuffer:true   // يمنع امتلاء الذاكرة في البثّ الطويل
             }
           );
-          PL.mpegts.attachMediaElement(newV);PL.mpegts.load();PL.mpegts.play().catch(()=>{});
-          PL.mpegts.on(mpegts.Events.ERROR,()=>{toast('خطأ في تشغيل بث TS');showBuf(false);});
+          PL.mpegts.attachMediaElement(newV);
+          PL.mpegts.on(mpegts.Events.ERROR,function(type,detail){
+            // تشخيص مؤقّت: نطبع سبب الفشل الحقيقي في Console ونحفظه
+            // ليظهر في الرسالة — حتى نعرف لماذا يفشل المتصفح بينما
+            // يعمل نفس البثّ عبر curl على الخادم.
+            PL._tsLastErr = (type||'?') + ' / ' + (detail||'?');
+            try{ console.error('[TS]', type, detail); }catch(e){}
+            // إعادة محاولة داخلية مرّتين قبل الاستسلام — كثير من أعطال
+            // بدء بثّ TS عابرة وتنجلي بإعادة التحميل
+            if((PL._tsRetry||0)<2){
+              PL._tsRetry=(PL._tsRetry||0)+1;
+              showBuf(true);
+              try{ PL.mpegts.unload(); PL.mpegts.load(); PL.mpegts.play().catch(()=>{}); }catch(_){}
+              return;
+            }
+            // فشل حقيقي بعد المحاولات. السبب الأشيع لقناة TS تعمل في
+            // اللوحة وتفشل في الموقع: مصدر Xtream لا يرسل رؤوس CORS،
+            // فيتعذّر على المتصفح قراءة البثّ عبر stream.php المحمي.
+            // الحلّ: نمرّرها عبر وسيط إعادة البثّ الذي يعيد تغليفها كـ
+            // HLS محليّ على أصلنا — فيزول قيدا TS وCORS معاً.
+            // بثّ TS يُمرَّر الآن مباشرةً عبر stream.php (بروكسي على أصل
+            // الموقع)، فيعمل سواءٌ كان الوسيط مفعّلاً أم مطفأً. إن وصلنا
+            // هنا فالتشغيل المباشر فشل فعلاً — نحترم مفتاح اللوحة:
+            //   مطفأ  → لا تحويل، رسالة تدلّ على المفتاح.
+            //   مفعّل → نحوّل عبر وسيط ffmpeg (يُصلح أيضاً صوت AC3).
+            if(window.__shsRestreamOn===false){
+              showBuf(false);
+              toast('تعذّر تشغيل القناة (سبب: '+(PL._tsLastErr||'غير معروف')+'). فعّل «إصلاح القنوات» من اللوحة إن استمرّ.');
+              return;
+            }
+            if(PL.streamRef && PL.streamRef.id>0 && !PL._tsRestreamTried){
+              PL._tsRestreamTried=true;
+              showBuf(true);
+              toast('جارٍ التشغيل عبر الخادم…');
+              _tsViaRestream(PL.streamRef, subUrl||'', 0);
+              return;
+            }
+            showBuf(false);
+            // ثم الرابط الاحتياطي إن وُجد، وإلا أبلغ
+            if(PL.backupUrl && !PL.usedBackup && url!==PL.backupUrl){
+              PL.usedBackup=true;
+              toast('تعذّر الرابط الأساسي — جارٍ التبديل للاحتياطي...');
+              try{ initStream(PL.backupUrl, subUrl||''); }catch(_){}
+            }else{
+              toast('خطأ في تشغيل بثّ TS');
+            }
+          });
+          PL.mpegts.load();
+          PL.mpegts.play().catch(()=>{});
         }else{toast('متصفحك لا يدعم مشغل mpegts');showBuf(false);}
       }else{
         // MP4, MKV, WEBM — مشغل مباشر (احترافي ومستقر)
@@ -2572,13 +2809,57 @@ function initStream(url,subUrl){
   newV.volume=PL.vol;newV.muted=PL.muted;
   newV.ontimeupdate=updateProgress;
   newV.onwaiting=()=>showBuf(true);
-  newV.onplaying=()=>{showBuf(false);setPlayIcon(false);PL.userPaused=false;};
+  newV.onplaying=()=>{showBuf(false);setPlayIcon(false);PL.userPaused=false;PL._seekErrRetry=0;};
   newV.onpause=()=>setPlayIcon(true);
   newV.onloadeddata=()=>showBuf(false);
   /* نُخفي مؤشر التحميل بمجرد أن تصبح أول صورة جاهزة — أبكر من loadeddata */
   newV.onloadedmetadata=()=>showBuf(false);
-  newV.oncanplay=()=>showBuf(false);
+  // نجاح التشغيل يصفّر عدّاد أخطاء القفزة — كل قفزة تبدأ بميزانية نظيفة
+  newV.oncanplay=()=>{ showBuf(false); PL._seekErrRetry=0; };
   newV.onerror=()=>{
+    /* ══ لماذا لا نعلن الفشل فوراً ══
+       هذا المعالِج يُطلق على كل خطأ في عنصر الفيديو، ومنه خطأ عابر
+       يقع لحظة التقديم في فيلم MP4 مباشر حين لا يدعم خادم المصدر
+       طلبات المدى دعماً كاملاً. كان يُظهر «تعذّر تحميل الفيديو» أو
+       يبدّل الرابط — عقوبةٌ قاسية على قفزة، بينما المشغّل قابل
+       للتعافي من موضع آمن.
+
+       نميّز: خطأ إثر قفزة (خلال ٦ث) ورمزه شبكة/فكّ ترميز (2 أو 3)
+       نتعافى منه؛ أمّا src غير مدعوم (4) أو خطأ بلا قفزة فهو فشل
+       حقيقي يستحقّ البديل ثم الرسالة. */
+    var _err=newV.error, _code=_err?_err.code:0;
+    var _sinceSeek = PL._lastSeekAt ? (Date.now()-PL._lastSeekAt) : 1e9;
+
+    if(_sinceSeek < 6000 && (_code===2 || _code===3)){
+      PL._seekErrRetry=(PL._seekErrRetry||0)+1;
+      if(PL._seekErrRetry<=2){
+        showBuf(true);
+        if(PL.hls){
+          try{ PL.hls.startLoad(); PL.hls.recoverMediaError(); }catch(_){}
+          newV.play().catch(()=>{});
+        }else{
+          // MP4 مباشر: ارجع إلى آخر موضع محمّل فعلاً وأكمل منه
+          try{
+            var _b=newV.buffered, _safe=0;
+            if(_b && _b.length){
+              for(var i=0;i<_b.length;i++){
+                if(_b.start(i)<=newV.currentTime) _safe=Math.max(_safe,_b.start(i));
+              }
+            }
+            newV.currentTime=_safe;
+          }catch(_){}
+          newV.play().catch(()=>{});
+        }
+        return;
+      }
+      // استُنفدت المحاولات: المصدر لا يدعم التقديم — نُبقيه حيّاً ولا نهدمه
+      PL._seekErrRetry=0;
+      showBuf(false);
+      toast('هذا المصدر لا يدعم التقديم السريع — أُكملت المشاهدة من مكانها');
+      newV.play().catch(()=>{});
+      return;
+    }
+
     showBuf(false);
     if(PL.backupUrl && !PL.usedBackup && url!==PL.backupUrl){
       PL.usedBackup=true;
@@ -2602,6 +2883,7 @@ function initStream(url,subUrl){
 
 /* destroyPlayer — تنظيف كامل مع تحرير Blob URLs */
 function destroyPlayer(){
+  if(typeof _tsStopPing==='function') _tsStopPing();   // نوقف نبضة الوسيط
   if(PL._liveGuard){ clearInterval(PL._liveGuard); PL._liveGuard=null; }
   if(PL.hls){try{PL.hls.destroy();}catch(e){}PL.hls=null;}
   if(PL.dash){try{PL.dash.reset();}catch(e){}PL.dash=null;}
@@ -2687,11 +2969,39 @@ function updateProgress(){
   const ec=document.getElementById('pTimeCur'),et=document.getElementById('pTimeTotal');
   if(ec)ec.textContent=cur;if(et)et.textContent=tot;
 }
+/* ══ تقييد هدف التقديم إلى المدى القابل للطلب فعلاً ══
+   بثّ Xtream عبر hls.js يحتفظ بنافذة أجزاء محدودة، لا بالفيلم كاملاً.
+   فالقفز إلى موضع خارج تلك النافذة يطلب مقطعاً غير موجود، فيُطلق
+   hls.js خطأً قاتلاً ينتهي بإعادة بناء كاملة تُظهر «تعذّر تشغيل
+   الفيديو» — بينما المطلوب مجرّد ضبط الهدف داخل المتاح.
+
+   نُبقي هامش ثانية عند الحافة الحيّة كي لا نقف على مقطع لم يكتمل
+   تحميله بعد. */
+function shsSafeSeek(v, target){
+  if(!v) return;
+  var t = target;
+  try{
+    var sk = v.seekable;
+    if(sk && sk.length){
+      var lo = sk.start(0), hi = sk.end(sk.length-1);
+      if(hi > lo + 1) hi -= 1;          // هامش أمان عند الحافة
+      if(t < lo) t = lo;
+      if(t > hi) t = hi;
+    } else if(v.duration && !isNaN(v.duration)){
+      t = Math.max(0, Math.min(t, v.duration));
+    }
+  }catch(_){}
+  try{
+    if(window.PL) PL._lastSeekAt = Date.now();  // يعرفه معالِج الخطأ
+    v.currentTime = t;
+  }catch(_){}
+}
+
 function seekTo(e){
   const v=document.getElementById('html5Player');
   if(!v||!v.duration||isNaN(v.duration))return;
   const r=document.getElementById('pProgress').getBoundingClientRect();
-  v.currentTime=((e.clientX-r.left)/r.width)*v.duration;
+  shsSafeSeek(v, ((e.clientX-r.left)/r.width)*v.duration);
   updateProgress();
 }
 function _syncVolUI(){
@@ -2758,7 +3068,7 @@ function flash(t){
 function skip(s){
   const v=document.getElementById('html5Player');
   if(!v)return;
-  v.currentTime=Math.max(0,Math.min(v.currentTime+s,v.duration||0));
+  shsSafeSeek(v, v.currentTime + s);   // يقيّد الهدف داخل المدى المتاح
   updateProgress();
   showControls(); // إعادة ضبط مؤقّت الإخفاء بعد التقديم/التأخير (مهم للتلفاز)
 }
@@ -3087,6 +3397,22 @@ function _tvSetFocus(el){
 document.addEventListener('keydown',function(e){
   if(document.getElementById('playerOverlay').classList.contains('active'))return;
   if(document.getElementById('tmdbInfoM').classList.contains('open'))return;
+
+  /* ══ لا نخطف المفاتيح أثناء الكتابة ══
+     🔴 هذا الحارس هو إصلاح العطل: كان Backspace (kc=8) مدرجاً ضمن
+     مفاتيح «رجوع» للتنقّل بريموت التلفاز، بلا استثناء لحقول الإدخال.
+     فكلّ ضغطة تراجع في مربّع البحث كانت تُمنَع (preventDefault) وتُنفّذ
+     _goBack() بدلها — فيُمسح البحث كاملاً بدل حذف حرف. والمسافة (OK)
+     والأسهم كانت تُخطَف مثله، فيتعذّر تحريك المؤشّر أو كتابة فراغ.
+
+     المعالجة القياسية: إن كان التركيز داخل حقل قابل للتحرير، ندع
+     المتصفح يتصرّف طبيعياً ولا نتدخّل إطلاقاً. */
+  var _ae = e.target || document.activeElement;
+  if(_ae){
+    var _tag = (_ae.tagName||'').toUpperCase();
+    if(_tag==='INPUT' || _tag==='TEXTAREA' || _tag==='SELECT' || _ae.isContentEditable) return;
+  }
+
   var ks=e.key||'',kc=e.keyCode||e.which||0;
   var K={UP:ks==='ArrowUp'||kc===38||kc===19,DOWN:ks==='ArrowDown'||kc===40||kc===20,LEFT:ks==='ArrowLeft'||kc===37||kc===21,RIGHT:ks==='ArrowRight'||kc===39||kc===22,OK:ks==='Enter'||ks==='Select'||ks===' '||kc===13||kc===23,BACK:ks==='Escape'||ks==='BrowserBack'||kc===27||kc===4||kc===10009||kc===8};
   if(!K.UP&&!K.DOWN&&!K.LEFT&&!K.RIGHT&&!K.OK&&!K.BACK)return;

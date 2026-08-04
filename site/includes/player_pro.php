@@ -413,6 +413,46 @@
     return !!(H && H.autoLevelEnabled === false);
   }
 
+  /* ══ ضبط جودة البداية من خارج هذا الملف ══
+     المشكلة: main_js.php كان يضبط PL.hls.currentLevel مباشرةً، لكن
+     الشارة والقائمة هنا تقرآن المتغيّر المحلي manualLevel — وهو لا
+     يتغيّر من الملف الآخر. فتبدو الشارة 1080 بينما ضبط المشغّل 720.
+     الأسوأ أن hls.js يستأنف التبديل التلقائي فور التحميل ويعيد
+     currentLevel إلى الأعلى، فيضيع الضبط أصلاً.
+
+     الحلّ أن يتولّى المالك الفعلي للحالة الضبطَ: نطفئ autoLevel،
+     ونثبّت manualLevel، ونحدّث الشارة — كلّها في مكان واحد. نعرّضها
+     على window ليناديها main_js.php عند MANIFEST_PARSED.
+
+     ونختار أقرب مستوى للارتفاع المطلوب لأننا لا نملك خلق مستوى
+     غير موجود في الـm3u8 — قد يكون 720 غير متاح فعلاً. */
+  window.ppSetQualityByHeight = function (wantH) {
+    var H = hls();
+    if (!H || !H.levels || !H.levels.length) return false;
+    wantH = parseInt(wantH, 10) || 0;
+    if (wantH <= 0) {                       // 0 = تلقائي صريح
+      manualLevel = -1; H.currentLevel = -1;
+      try { H.nextLevel = -1; } catch (e) {}
+      updateBadge();
+      return true;
+    }
+    var best = -1, diff = Infinity;
+    for (var i = 0; i < H.levels.length; i++) {
+      var h = H.levels[i].height || 0;
+      var d = Math.abs(h - wantH);
+      // عند التساوي نفضّل الأعلى ارتفاعاً
+      if (d < diff || (d === diff && best >= 0 && h > (H.levels[best].height || 0))) {
+        diff = d; best = i;
+      }
+    }
+    if (best < 0) return false;
+    manualLevel = best;
+    H.currentLevel = best;
+    try { H.nextLevel = best; } catch (e) {}
+    updateBadge();
+    return true;
+  };
+
   function updateBadge() {
     if (!qualityBadge) return;
     var H = hls();

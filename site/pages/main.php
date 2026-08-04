@@ -12,8 +12,13 @@
   <div class="nav-center">
     <?php if(!$hide_search): ?>
     <div class="search-wrap">
-      <input type="text" id="searchInput" placeholder="بحث / Search" oninput="handleSearch()">
+      <input type="text" id="searchInput" placeholder="بحث / Search" autocomplete="off" oninput="handleSearch()">
       <span class="lcn si"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+      <?php /* زرّ مسح البحث: يظهر فقط حين يوجد نصّ، فالحذف بيد المستخدم لا تلقائي */ ?>
+      <span class="lcn" id="searchClearBtn" onclick="clearSearchBox()" role="button" title="مسح البحث"
+            style="position:absolute;left:44px;top:50%;transform:translateY(-50%);color:var(--text-muted);cursor:pointer;font-size:1rem;display:none;z-index:11;transition:.2s">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </span>
       <span class="lcn" id="voiceSearchBtn" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-muted);cursor:pointer;font-size:1.1rem;display:none;z-index:10;transition:0.2s" title="بحث صوتي"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></span>
     </div>
     <?php endif; ?>

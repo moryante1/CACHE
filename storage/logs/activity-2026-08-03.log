@@ -1,0 +1,11 @@
+{"ts":"2026-08-03T17:22:55+00:00","channel":"activity","msg":"تسجيل دخول ناجح","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"المستخدم: admin"}}
+{"ts":"2026-08-03T17:24:18+00:00","channel":"activity","msg":"تسجيل دخول ناجح","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"المستخدم: admin"}}
+{"ts":"2026-08-03T17:34:21+00:00","channel":"activity","msg":"تسجيل دخول ناجح","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"المستخدم: admin"}}
+{"ts":"2026-08-03T18:10:43+00:00","channel":"activity","msg":"تسجيل دخول ناجح","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"المستخدم: admin"}}
+{"ts":"2026-08-03T18:23:20+00:00","channel":"activity","msg":"تسجيل دخول ناجح","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"المستخدم: admin"}}
+{"ts":"2026-08-03T18:35:48+00:00","channel":"activity","msg":"محاولة تسجيل دخول فاشلة","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"المستخدم: admin | IP: 192.168.1.76"}}
+{"ts":"2026-08-03T18:36:01+00:00","channel":"activity","msg":"تسجيل دخول ناجح","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"المستخدم: admin"}}
+{"ts":"2026-08-03T18:56:58+00:00","channel":"activity","msg":"فشل التحقق من CSRF","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"IP: 192.168.1.76"}}
+{"ts":"2026-08-03T18:57:04+00:00","channel":"activity","msg":"فشل التحقق من CSRF","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"IP: 192.168.1.76"}}
+{"ts":"2026-08-03T18:57:15+00:00","channel":"activity","msg":"فشل التحقق من CSRF","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"IP: 192.168.1.76"}}
+{"ts":"2026-08-03T18:59:28+00:00","channel":"activity","msg":"تسجيل دخول ناجح","ip":"192.168.1.76","uri":"\/iptv\/login.php","ctx":{"ip":"192.168.1.76","details":"المستخدم: admin"}}
